@@ -1,0 +1,7 @@
+__pycache__/
+backup/
+*.txt
+local.py
+account.json
+bind.json
+stat.db

@@ -1,0 +1,19 @@
+{
+    "access_key": "",
+    "clan": [
+        {
+            "clan_id": 0,
+            "owner": 0,
+            "equip": 1
+        }
+    ],
+    "accounts": [
+        {
+            "vid": 100000000000,
+            "uid": "2021*************00000",
+            "clan_id": 1234,
+            "equip": 1,
+            "today_donate": 0
+        }
+    ]
+}
