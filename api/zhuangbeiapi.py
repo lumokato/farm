@@ -6,11 +6,11 @@ class ZhuangbeiApi(BaseApi):
 
     # 单次捐赠装备
     def donate(self, clan_id: int, message_id: int, current_equip_num: int, donation_num: int):
-        temp = self.Client.Callapi('equipment/donate', {'clan_id': clan_id, 'message_id': message_id,
+        temp = self.client.callapi('equipment/donate', {'clan_id': clan_id, 'message_id': message_id,
                                                         'donation_num': donation_num, 'current_equip_num': current_equip_num})
         if 'donation_num' not in temp:
-            self.Client.login(self.uid, self.access_key)
-            temp = self.Client.Callapi('equipment/donate', {'clan_id': clan_id, 'message_id': message_id,
+            self.client.login(self.uid, self.access_key)
+            temp = self.client.callapi('equipment/donate', {'clan_id': clan_id, 'message_id': message_id,
                                                             'donation_num': donation_num, 'current_equip_num': current_equip_num})
         return temp
 

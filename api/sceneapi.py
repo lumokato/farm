@@ -6,16 +6,16 @@ import time
 class SceneApi(BaseApi):
     # 解锁主线章节
     def release_all(self, chapter: int):
-        temp = self.Client.Callapi('/story/force_release', {'story_group_id': chapter + 2000})
+        temp = self.client.callapi('/story/force_release', {'story_group_id': chapter + 2000})
         if 'server_error' not in temp:
             print('    已解锁主线章节' + str(chapter))
 
     # 按id读取剧情
     def storycheck(self, storyid: int):
         try:
-            res = self.Client.Callapi('/story/check', {'story_id': storyid})
+            res = self.client.callapi('/story/check', {'story_id': storyid})
             time.sleep(random.randint(3, 9))
-            res = self.Client.Callapi('/story/start', {'story_id': storyid})
+            res = self.client.callapi('/story/start', {'story_id': storyid})
             if 'server_error' in res:
                 return False
             if 'reward_info' in res:

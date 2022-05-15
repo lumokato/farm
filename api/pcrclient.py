@@ -10,17 +10,22 @@ from datetime import datetime
 from re import search
 import time
 from json import loads
+from os.path import dirname, join, exists
 
-
-def Padding(s):
-    return lambda s: s + (16-len(s))*b"\0"  # 用于补全key
+curpath = dirname(__file__)
+config = join(curpath, 'version.txt')
+version = "4.9.4"
+if exists(config):
+    with open(config, encoding='utf-8') as fp:
+        version = fp.read().strip()
+else:
+    with open(config, "w", encoding='utf-8') as fp:
+        print(version, file=fp)
 
 
 # 用于补全下面的text，上面两个网址就是用以下形式补全的
-def Padding_txt(s):
+def padding_txt(s):
     return s + (16 - len(s) % 16) * chr(16 - len(s) % 16).encode()
-# Padding = lambda s: s + (16-len(s))*b"\0"
-# Padding_txt = lambda s: s + (16 - len(s) % 16) * chr(16 - len(s) % 16).encode()
 
 
 def unpack(decrypted_packet):
@@ -51,7 +56,7 @@ def encrypt_nobase64(decrypted, key):
     vi = b'ha4nBYA2APUD6Uv1'
     cryptor = AES.new(key, mode, vi)
     ss1 = msgpack.packb(decrypted)
-    ss1 = Padding_txt(ss1)
+    ss1 = padding_txt(ss1)
     plain_text = cryptor.encrypt(ss1)
     return plain_text
 
@@ -60,16 +65,16 @@ def encrypt(decrypted, key):
     mode = AES.MODE_CBC
     vi = b'ha4nBYA2APUD6Uv1'
     cryptor = AES.new(key, mode, vi)
-    ss1 = Padding_txt(decrypted.encode())
+    ss1 = padding_txt(decrypted.encode())
     plain_text = cryptor.encrypt(ss1)
     return base64.b64encode(plain_text + key)
 
 
-def CreateKey():
+def createkey():
     return base64.b16encode(uuid.uuid1().bytes).lower()
 
 
-def Pack(request, key):
+def pack(request, key):
     encrypted = encrypt_nobase64(request, key)
     return encrypted + key
 
@@ -88,7 +93,7 @@ class PCRClient:
             "DEVICE-ID": "febf37270db0254b8d1f76af92f0419f",
             "DEVICE-NAME": "Google PIXEL 2 XL",
             "GRAPHICS-DEVICE-NAME": "Adreno (TM) 540",
-            "APP-VER": "4.9.4",
+            "APP-VER": version,
             "RES-KEY": "d145b29050641dac2f8b19df0afe0e59",
             "RES-VER": "10002200",
             "KEYCHAIN": "",
@@ -106,13 +111,13 @@ class PCRClient:
             "Connection": "close"}
         self.conn = requests.session()
 
-    def Callapi(self, apiurl, request, crypted=True):
-        key = CreateKey()
+    def callapi(self, apiurl, request, crypted=True):
+        key = createkey()
         if crypted:
             request['viewer_id'] = encrypt(str(self.viewer_id), key).decode()
         else:
             request['viewer_id'] = str(self.viewer_id)
-        req = Pack(request, key)
+        req = pack(request, key)
         flag = self.request_id is not None and self.request_id != ''
         flag2 = self.session_id is not None and self.session_id != ''
         headers = self.default_headers
@@ -126,6 +131,13 @@ class PCRClient:
         else:
             ret = loads(resp.content.decode())
         ret_header = ret["data_headers"]
+        if "check/game_start" == apiurl and "store_url" in ret_header:
+            global version
+            if ret_header["store_url"].split('_')[1][:-4] != version:
+                version = ret_header["store_url"].split('_')[1][:-4]
+                self.default_headers['APP-VER'] = version
+                with open(config, "w", encoding='utf-8') as fp:
+                    print(version, file=fp)
         if "sid" in ret_header:
             if ret_header["sid"] is not None and ret_header["sid"] != "":
                 self.session_id = hashlib.md5((ret_header["sid"] + "c!SID!n").encode()).hexdigest()
@@ -139,7 +151,7 @@ class PCRClient:
 
     def login(self, uid, access_key):
         while True:
-            self.manifest = self.Callapi('source_ini/get_maintenance_status', {}, False)
+            self.manifest = self.callapi('source_ini/get_maintenance_status', {}, False)
             if 'maintenance_message' not in self.manifest:
                 break
             try:
@@ -153,12 +165,16 @@ class PCRClient:
                 time.sleep(60)
         ver = self.manifest["required_manifest_ver"]
         self.default_headers["MANIFEST-VER"] = ver
-        self.Callapi('tool/sdk_login', {"uid": uid, "access_key": access_key, "platform": self.default_headers["PLATFORM-ID"], "channel_id": self.default_headers["CHANNEL-ID"]})
-        self.Callapi('check/game_start', {"app_type": 0, "campaign_data": "", "campaign_user": random.randint(1, 1000000)})
-        self.Callapi("check/check_agreement", {})
-        self.Callapi("load/index", {"carrier": "google"})
-        self.home = self.Callapi("home/index", {'message_id': random.randint(1, 5000), 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
-        return self.home
+        self.callapi('tool/sdk_login', {"uid": uid, "access_key": access_key, "platform": self.default_headers["PLATFORM-ID"], "channel_id": self.default_headers["CHANNEL-ID"]})
+        self.callapi('check/game_start', {"app_type": 0, "campaign_data": "", "campaign_user": random.randint(1, 1000000)})
+        self.callapi("check/check_agreement", {})
+        self.load = self.callapi("load/index", {"carrier": "google"})
+        self.home = self.callapi("home/index", {'message_id': random.randint(1, 5000), 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
+        if 'server_error' in self.home:
+            self.callapi('tool/sdk_login', {"uid": uid, "access_key": access_key, "platform": self.default_headers["PLATFORM-ID"], "channel_id": self.default_headers["CHANNEL-ID"]})
+            self.callapi('check/game_start', {"app_type": 0, "campaign_data": "", "campaign_user": random.randint(1, 1000000)})
+            self.callapi("check/check_agreement", {})
+        return self.load, self.home
 
 
 class ApiException(Exception):

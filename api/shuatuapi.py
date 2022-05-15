@@ -66,16 +66,16 @@ class ShatuApi(BaseApi):
             random_count = 99
         # 刷主线
         if quest_id > 11000000:
-            temp = self.Client.Callapi('quest/quest_skip', {'quest_id': quest_id, 'random_count': random_count, 'current_ticket_num': current_ticket_num})
+            temp = self.client.callapi('quest/quest_skip', {'quest_id': quest_id, 'random_count': random_count, 'current_ticket_num': current_ticket_num})
             if 'quest_result_list' not in temp:
-                self.Client.login(self.uid, self.access_key)
-                temp = self.Client.Callapi('quest/quest_skip', {'quest_id': quest_id, 'random_count': random_count, 'current_ticket_num': current_ticket_num})
+                self.client.login(self.uid, self.access_key)
+                temp = self.client.callapi('quest/quest_skip', {'quest_id': quest_id, 'random_count': random_count, 'current_ticket_num': current_ticket_num})
         # 刷活动图
         else:
-            temp = self.Client.Callapi('event/hatsune/quest_skip', {'event_id': self.event_id, 'quest_id': quest_id, 'use_ticket_num': random_count, 'current_ticket_num': current_ticket_num})
+            temp = self.client.callapi('event/hatsune/quest_skip', {'event_id': self.event_id, 'quest_id': quest_id, 'use_ticket_num': random_count, 'current_ticket_num': current_ticket_num})
             if 'quest_result_list' not in temp:
-                self.Client.login(self.uid, self.access_key)
-                temp = self.Client.Callapi('event/hatsune/quest_skip', {'event_id': self.event_id, 'quest_id': quest_id, 'use_ticket_num': random_count, 'current_ticket_num': current_ticket_num})
+                self.client.login(self.uid, self.access_key)
+                temp = self.client.callapi('event/hatsune/quest_skip', {'event_id': self.event_id, 'quest_id': quest_id, 'use_ticket_num': random_count, 'current_ticket_num': current_ticket_num})
         if 'item_list' in temp:
             self.num_ticket = temp['item_list'][0]['stock']
             self.user_stamina = temp['user_info']['user_stamina']
@@ -93,7 +93,7 @@ class ShatuApi(BaseApi):
         if times > self.recovery:
             for i in range(times):
                 if self.user_stamina < 878:
-                    temp1 = self.Client.Callapi('shop/recover_stamina', {'current_currency_num': self.user_jewel+self.paid_jewel})
+                    temp1 = self.client.callapi('shop/recover_stamina', {'current_currency_num': self.user_jewel+self.paid_jewel})
                     self.user_jewel = temp1['user_jewel']['free_jewel']
                     self.user_stamina = temp1['user_info']['user_stamina']
                     time.sleep(3)
@@ -140,11 +140,11 @@ class ShatuApi(BaseApi):
             return False
         gold_count = 2 - self.gold_quest
         if gold_count:
-            temp = self.Client.Callapi('/training_quest/quest_skip', {
+            temp = self.client.callapi('/training_quest/quest_skip', {
                                        'quest_id': gold_num, 'random_count': gold_count, 'current_ticket_num': self.num_ticket})
             if 'quest_result_list' not in temp:
-                self.Client.login(self.uid, self.access_key)
-                temp = self.Client.Callapi('/training_quest/quest_skip', {
+                self.client.login(self.uid, self.access_key)
+                temp = self.client.callapi('/training_quest/quest_skip', {
                                            'quest_id': gold_num, 'random_count': gold_count, 'current_ticket_num': self.num_ticket})
             self.num_ticket = temp['item_list'][0]['stock']
             # print("  刷玛那本"+str(gold_num - 21001000)+"共"+str(gold_count)+"次")
@@ -159,11 +159,11 @@ class ShatuApi(BaseApi):
             return False
         exp_count = 2 - self.exp_quest
         if exp_count:
-            temp = self.Client.Callapi('/training_quest/quest_skip', {
+            temp = self.client.callapi('/training_quest/quest_skip', {
                                        'quest_id': exp_num, 'random_count': exp_count, 'current_ticket_num': self.num_ticket})
             if 'quest_result_list' not in temp:
-                self.Client.login(self.uid, self.access_key)
-                temp = self.Client.Callapi('/training_quest/quest_skip', {
+                self.client.login(self.uid, self.access_key)
+                temp = self.client.callapi('/training_quest/quest_skip', {
                                            'quest_id': exp_num, 'random_count': exp_count, 'current_ticket_num': self.num_ticket})
             self.num_ticket = temp['item_list'][0]['stock']
             # print("  刷经验本"+str(exp_num - 21002000)+"共"+str(exp_count)+"次")
@@ -173,11 +173,11 @@ class ShatuApi(BaseApi):
     def alchemy(self):
         # 钻量大于3000时购买扫荡券
         if self.num_ticket < 200 and self.user_jewel > 3000:
-            temp = self.Client.Callapi(
+            temp = self.client.callapi(
                 'shop/alchemy', {'multiple_count': 10, 'pay_or_free': 2, 'current_currency_num': self.user_jewel})
             if 'alchemy_reward_list' not in temp:
-                self.Client.login(self.uid, self.access_key)
-                temp = self.Client.Callapi(
+                self.client.login(self.uid, self.access_key)
+                temp = self.client.callapi(
                     'shop/alchemy', {'multiple_count': 10, 'pay_or_free': 2, 'current_currency_num': self.user_jewel})
             self.num_ticket = temp['alchemy_reward_list'][0]['reward_info_list'][0]['stock']
             self.user_jewel = temp['free_jewel']
@@ -185,13 +185,13 @@ class ShatuApi(BaseApi):
 
     # 查活动图状态
     def event_dict(self):
-        temp0 = self.Client.Callapi(
+        temp0 = self.client.callapi(
             'event/hatsune/top', {'event_id': self.event_id})
         if 'event_status' not in temp0:
-            self.Client.login(self.uid, self.access_key)
-            temp0 = self.Client.Callapi(
+            self.client.login(self.uid, self.access_key)
+            temp0 = self.client.callapi(
                 'event/hatsune/top', {'event_id': self.event_id})
-        temp = self.Client.Callapi(
+        temp = self.client.callapi(
             'event/hatsune/quest_top', {'event_id': self.event_id})
         if 'quest_list' in temp:
             for quest in temp['quest_list']:
@@ -248,7 +248,8 @@ class ShatuApi(BaseApi):
         shuatu_count = int(2500/stamina_base)
         random.shuffle(shuatu)
         for tu_num in shuatu:
-            if not self.quest(tu_num, shuatu_count, (3 if buy_stamina else 0)):
+            # 买体力次数更改为0
+            if not self.quest(tu_num, shuatu_count, (0 if buy_stamina else 0)):
                 return False
         return self.user_stamina > 20
 
@@ -262,5 +263,5 @@ class ShatuApi(BaseApi):
             print('    刷N图')
             self.shuatu_N(N2_status)
         else:
-            if self.shuatu_allH():
-                self.shuatu_N(N2_status)
+            # 非N2时只刷H图
+            self.shuatu_allH()
