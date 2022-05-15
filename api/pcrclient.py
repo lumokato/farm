@@ -84,7 +84,7 @@ class PCRClient:
             "DEVICE-ID": "febf37270db0254b8d1f76af92f0419f",
             "DEVICE-NAME": "Google PIXEL 2 XL",
             "GRAPHICS-DEVICE-NAME": "Adreno (TM) 540",
-            "APP-VER": "4.9.3",
+            "APP-VER": "4.9.4",
             "RES-KEY": "d145b29050641dac2f8b19df0afe0e59",
             "RES-VER": "10002200",
             "KEYCHAIN": "",
