@@ -1,11 +1,15 @@
 import requests
-# import .pcrpack as Pack
 import hashlib
 import random
 from Crypto.Cipher import AES
 import base64
 import msgpack
 import uuid
+from dateutil.parser import parse
+from datetime import datetime
+from re import search
+import time
+from json import loads
 
 
 def Padding(s):
@@ -117,11 +121,10 @@ class PCRClient:
         if flag2:
             headers["SID"] = self.session_id
         resp = self.conn.post(url=self.urlroot + apiurl, headers=headers, data=req)
-        null = None
         if crypted:
             ret = decrypt(resp.content)
         else:
-            ret = eval(resp.content.decode())
+            ret = loads(resp.content.decode())
         ret_header = ret["data_headers"]
         if "sid" in ret_header:
             if ret_header["sid"] is not None and ret_header["sid"] != "":
@@ -135,7 +138,19 @@ class PCRClient:
         return ret["data"]
 
     def login(self, uid, access_key):
-        self.manifest = self.Callapi('source_ini/get_maintenance_status', {}, False)
+        while True:
+            self.manifest = self.Callapi('source_ini/get_maintenance_status', {}, False)
+            if 'maintenance_message' not in self.manifest:
+                break
+            try:
+                match = search(r'\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d', self.manifest['maintenance_message']).group()
+                end = parse(match)
+                print(f'server is in maintenance until {match}')
+                while datetime.now() < end:
+                    time.sleep(60)
+            except Exception:
+                print('server is in maintenance. waiting for 60 secs')
+                time.sleep(60)
         ver = self.manifest["required_manifest_ver"]
         self.default_headers["MANIFEST-VER"] = ver
         self.Callapi('tool/sdk_login', {"uid": uid, "access_key": access_key, "platform": self.default_headers["PLATFORM-ID"], "channel_id": self.default_headers["CHANNEL-ID"]})
