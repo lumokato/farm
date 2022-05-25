@@ -205,4 +205,6 @@ if __name__ == "__main__":
                       start_date="2021-8-23 06:30:00")
     scheduler.add_job(clear_daily, 'interval', days=1,
                       start_date="2022-5-12 00:05:00")
+    scheduler.add_job(refresh_clan, 'date', run_date="2022-5-25 20:00:00", args=['before'])
+    scheduler.add_job(refresh_clan, 'date', run_date="2022-5-31 00:01:00", args=['after'])
     scheduler.start()
