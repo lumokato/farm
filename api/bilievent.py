@@ -140,7 +140,7 @@ def load_event_bilibili(nowtime=datetime.datetime.now()):
                 item['start'], r"%Y/%m/%d %H:%M")
             end_time = datetime.datetime.strptime(
                 item['end'], r"%Y/%m/%d %H:%M")
-            if nowtime < end_time and nowtime > start_time and '「普通关卡」掉落量' in item['title']:
+            if nowtime < end_time and nowtime > start_time and '普通关卡' in item['title']:
                 # print(item['title'])
                 return True
     return False
@@ -165,5 +165,23 @@ def load_battle_bilibili(nowtime=datetime.datetime.now()):
     return False
 
 
+def time_battle_bilibili(nowtime=datetime.datetime.now()):
+    data = ''
+
+    data = get_record('https://static.biligame.com/pcr/gw/calendar.js')
+
+    data = transform_bilibili_calendar(data)
+    # print(nowtime)
+    if data:
+        for item in data:
+            start_time = datetime.datetime.strptime(
+                item['start'], r"%Y/%m/%d %H:%M")
+            end_time = datetime.datetime.strptime(
+                item['end'], r"%Y/%m/%d %H:%M")
+            if nowtime < end_time and nowtime - start_time < datetime.timedelta(30) and '团队战' in item['title']:
+                return start_time, end_time
+    return False
+
+
 if __name__ == '__main__':
-    print(load_battle_bilibili(datetime.datetime.now()))
+    print(time_battle_bilibili(datetime.datetime.now()))

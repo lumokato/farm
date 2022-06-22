@@ -173,7 +173,7 @@ def clear_daily():
     save_bind()
 
 
-# 会战前后移除人员
+# 移除人员
 def refresh_clan(seq='before'):
     message = "移除人员:\n"
     for clan in total['clan']:
@@ -197,14 +197,19 @@ def refresh_clan(seq='before'):
         f.write(message)
 
 
+# 会战前后移除过程
+def battle_remove(scheduler):
+    clan_time = bilievent.time_battle_bilibili(datetime.datetime.now())
+    if clan_time:
+        scheduler.add_job(refresh_clan, 'date', run_date=clan_time[0]-datetime.timedelta(hours=9.5), args=['before'])
+        scheduler.add_job(refresh_clan, 'date', run_date=clan_time[1]+datetime.timedelta(minutes=2), args=['after'])
+        scheduler.add_job(refresh_clan, 'date', run_date=clan_time[1]+datetime.timedelta(hours=7), args=['after'])
+
+
 if __name__ == "__main__":
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
-    scheduler.add_job(equip_donate, 'interval', hours=1,
-                      start_date="2021-9-15 21:20:00")
-    scheduler.add_job(farm_daily, 'interval', hours=12,
-                      start_date="2021-8-23 06:30:00")
-    scheduler.add_job(clear_daily, 'interval', days=1,
-                      start_date="2022-5-12 00:05:00")
-    scheduler.add_job(refresh_clan, 'date', run_date="2022-5-25 20:00:00", args=['before'])
-    scheduler.add_job(refresh_clan, 'date', run_date="2022-5-31 00:01:00", args=['after'])
+    scheduler.add_job(equip_donate, 'cron', minute='20')
+    scheduler.add_job(farm_daily, 'cron', hour='6,18', minute='30')
+    scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
+    scheduler.add_job(battle_remove, 'cron', day='23', hour='12', args=[scheduler])
     scheduler.start()
