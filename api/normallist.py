@@ -53,11 +53,11 @@ rank1 = [
 
 
 def shuatu_list(max_tu_num):
-    if max_tu_num > 11022000:
+    if max_tu_num > 11022000:    # >298
         return rank12 + rank11 + rank8
-    elif max_tu_num > 11017000:
+    elif max_tu_num > 11017000:  # >228
         return rank11 + rank10 + rank7
-    elif max_tu_num > 11012000:
+    elif max_tu_num > 11012000:  # >152
         return rank10 + rank9 + rank8
     else:
         return rank7 + rank1

@@ -49,21 +49,6 @@ class GonghuiApi(BaseApi):
         if not temp:
             print('退出成功')
 
-    # 查询公会内成员id/非农场id显示详情
-    def query_clan_members(self, clan_id: int):
-        print('行会id为'+str(clan_id))
-        mem_list = []
-        members = self.client.callapi(
-            'clan/others_info', {'clan_id': clan_id})['clan']['members']
-        for mem in members:
-            # if mem['viewer_id'] not in ac.account_all.keys():
-            #     res0 = self.client.callapi(
-            #         'profile/get_profile', {'target_viewer_id': int(mem['viewer_id'])})['user_info']
-            #     print(str(res0['viewer_id']) + ': ' + res0['user_name'])
-            print('  '+mem['name']+'  '+str(mem['viewer_id'])+'等级为'+str(mem['level']))
-            mem_list.append(mem['viewer_id'])
-        return mem_list
-
     # 交接会长
     def change_role(self, change_id: int):
         temp = self.client.callapi('clan/change_role', {'role_info': [
@@ -71,15 +56,19 @@ class GonghuiApi(BaseApi):
         if 'members' in temp:
             print('交接成功')
 
+    # 查询公会内成员详情
     def query_clan_member(self, clan_id: int):
         print('  行会id为'+str(clan_id))
         mem_list = []
         members = self.client.callapi(
             'clan/others_info', {'clan_id': clan_id})['clan']['members']
         for mem in members:
-            res0 = self.client.callapi(
-                'profile/get_profile', {'target_viewer_id': int(mem['viewer_id'])})['user_info']
-            print(str(res0['viewer_id']) + '场次: ' + str(res0['arena_group']))
+            res = self.client.callapi(
+                'profile/get_profile', {'target_viewer_id': int(mem['viewer_id'])})
+            print(str(res['user_info']['viewer_id']) + ' 用户名: ' + res['user_info']['user_name'] + ' 等级' +
+                  str(res['user_info']['team_level']) + ' N图解锁: ' + str(sum(res['quest_info']['normal_quest']))
+                  + ' H图解锁: ' + str(sum(res['quest_info']['hard_quest'])))
+            # print(str(res['user_info']['viewer_id']) + '场次: ' + str(res['user_info']['arena_group'])) # arena场次
         return mem_list
 
     # 检查公会成员
