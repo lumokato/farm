@@ -212,5 +212,5 @@ if __name__ == "__main__":
     scheduler.add_job(farm_daily, 'cron', hour='6,18', minute='30')
     scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
     scheduler.add_job(battle_remove, 'cron', day='23', hour='12', args=[scheduler])
-    farm_daily()
+    # farm_daily()
     scheduler.start()
