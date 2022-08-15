@@ -57,7 +57,7 @@ class FriendApi(BaseApi):
 
     # 改名
     def rename(self):
-        self.client.callapi('profile/rename', {'user_name': '加完删'})
+        self.client.callapi('profile/rename', {'user_name': '佑树'})
 
     # 改简介
     def update_comment(self, comment):

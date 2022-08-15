@@ -84,6 +84,8 @@ def user_mission(vid):
     try:
         for i, friend_account in enumerate(friend["accounts"]):
             App = FriendApi(friend_account['vid'], friend_account['uid'], total['access_key'])
+            # if i > 0:
+            #     App.rename()
             App.friend_remove_all()
             App.friend_request(vid)
             friend["accounts"][i]['total_friend'] += 1
