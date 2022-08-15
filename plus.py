@@ -1,0 +1,139 @@
+'''
+一些一次性任务实现
+'''
+from api.baseapi import BaseApi
+from api.friendapi import FriendApi
+from log import logger
+from json import load, dump
+from os.path import exists
+import time
+
+if exists('account.json'):
+    with open('account.json', encoding='utf-8') as fp:
+        total = load(fp)
+
+if exists('friend.json'):
+    with open('friend.json', encoding='utf-8') as fp:
+        friend = load(fp)
+
+if exists('bind.json'):
+    with open('bind.json', encoding='utf-8') as fp:
+        bind = load(fp)
+
+
+def save_friend():
+    global friend
+    with open('friend.json', 'w', encoding='utf-8') as fp:
+        dump(friend, fp, indent=4, ensure_ascii=False)
+
+
+def save_bind():
+    global bind
+    with open('bind.json', 'w', encoding='utf-8') as fp:
+        dump(bind, fp, indent=4, ensure_ascii=False)
+
+
+# 世界Boss活动全部收取
+def jewel_plus_all():
+    log = logger('jewel-')
+    try:
+        for account in total["accounts"]:
+            print('已登录账号'+str(account))
+            App = BaseApi(account['vid'], account['uid'], total['access_key'])
+            App.load_index()
+            App.kaiser_battle()
+            App.mission_plus()
+            App.season_ticket()
+            # App.season_ticket_reward()
+    except Exception as e:
+        log.exception(e)
+
+
+# 农场新手活动全解锁
+def farm_mission_all():
+    log = logger('friend-')
+    try:
+        clan_ids = []
+        for clan in total['clan']:
+            clan_ids.append(clan['clan_id'])
+        for clan_id in clan_ids:
+            for friend_account in friend["accounts"]:
+                App = FriendApi(friend_account['vid'], friend_account['uid'], total['access_key'])
+                App.friend_remove_all()
+                for account in total["accounts"]:
+                    if account['clan_id'] == clan_id:
+                        App.friend_request(account['uid'])
+            for account in total["accounts"]:
+                if account['clan_id'] == clan_id:
+                    App = FriendApi(account['vid'], account['uid'], total['access_key'])
+                    for i, friend_account in enumerate(friend["accounts"]):
+                        App.friend_accept(friend_account['vid'])
+                        friend["accounts"][i]['total_friend'] += 1
+                    for friend_account in friend["accounts"]:
+                        App.friend_remove(friend_account['vid'])
+                    print('已登录账号'+str(App.viewer_id))
+                    App.freshman_mission()
+        save_friend()
+    except Exception as e:
+        log.exception(e)
+
+
+# 按vid完成新手活动
+def user_mission(vid):
+    log = logger('friend-')
+    try:
+        for i, friend_account in enumerate(friend["accounts"]):
+            App = FriendApi(friend_account['vid'], friend_account['uid'], total['access_key'])
+            App.friend_remove_all()
+            App.friend_request(vid)
+            friend["accounts"][i]['total_friend'] += 1
+        save_friend()
+    except Exception as e:
+        log.exception(e)
+
+
+def farm_back():
+    '''会战结束手动捐一次'''
+    start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    account_finish = {}
+    farm_list = total["accounts"]
+    # first routine
+    for i, account in enumerate(farm_list):
+        for j, clan in enumerate(bind['clan']):
+            if clan['clan_id'] == account['clan_id'] and clan['donate_user']:
+                try:
+                    App = BaseApi(account["vid"], account["uid"], total['access_key'])
+                    dun = App.dungeon(clan['donate_user'])
+                    if dun:
+                        bind['clan'][j]['donate_times'] += 1
+                        account_finish[i] = 1
+                except Exception:
+                    continue
+    finish_count = sum(account_finish.values())
+    fail_account = []
+    # second routine
+    for i, account in enumerate(farm_list):
+        for j, clan in enumerate(bind['clan']):
+            if clan['clan_id'] == account['clan_id'] and clan['donate_user']:
+                if i not in account_finish.keys():
+                    try:
+                        App = BaseApi(account["vid"], account["uid"], total['access_key'])
+                        dun = App.dungeon(clan['donate_user'])
+                        if dun:
+                            bind['clan'][j]['donate_times'] += 1
+                            account_finish[i] = 1
+                        else:
+                            fail_account.append(account["vid"])
+                    except Exception:
+                        fail_account.append(account["vid"])
+    finish_count_plus = sum(account_finish.values())
+    end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    save_bind()
+    with open('./log/total.txt', 'a', encoding='utf-8') as f:
+        f.write('本次手动捐赠共成功处理'+str(finish_count)+'个账号, 后续补充处理'+str(finish_count_plus - finish_count)+'个账号, 开始时间为'+start_time+', 结束时间为'+end_time+'\n')
+        if fail_account:
+            f.write('未成功处理账号共'+str(len(fail_account))+'个')
+
+
+if __name__ == '__main__':
+    farm_back()

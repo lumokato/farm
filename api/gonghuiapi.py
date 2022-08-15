@@ -58,16 +58,19 @@ class GonghuiApi(BaseApi):
 
     # 查询公会内成员详情
     def query_clan_member(self, clan_id: int):
-        print('  行会id为'+str(clan_id))
+        # print('  行会id为'+str(clan_id))
         mem_list = []
         members = self.client.callapi(
             'clan/others_info', {'clan_id': clan_id})['clan']['members']
         for mem in members:
             res = self.client.callapi(
                 'profile/get_profile', {'target_viewer_id': int(mem['viewer_id'])})
-            print(str(res['user_info']['viewer_id']) + ' 用户名: ' + res['user_info']['user_name'] + ' 等级' +
-                  str(res['user_info']['team_level']) + ' N图解锁: ' + str(sum(res['quest_info']['normal_quest']))
-                  + ' H图解锁: ' + str(sum(res['quest_info']['hard_quest'])))
+            print(str(res['user_info']['viewer_id']) + ',' + res['user_info']['user_name'] + ',' +
+                  str(res['user_info']['team_level']) + ',' + str(sum(res['quest_info']['normal_quest']))
+                  + ',' + str(sum(res['quest_info']['hard_quest'])) + ',' + str(clan_id))
+            # print(str(res['user_info']['viewer_id']) + ' 用户名: ' + res['user_info']['user_name'] + ' 等级' +
+            #       str(res['user_info']['team_level']) + ' N图解锁: ' + str(sum(res['quest_info']['normal_quest']))
+            #       + ' H图解锁: ' + str(sum(res['quest_info']['hard_quest'])))
             # print(str(res['user_info']['viewer_id']) + '场次: ' + str(res['user_info']['arena_group'])) # arena场次
         return mem_list
 
