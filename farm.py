@@ -109,7 +109,7 @@ def daily_matters(vid, uid, N_event):
 
 def farm_daily():
     start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    N_event = bilievent.load_event_bilibili(start_time)
+    N_event = bilievent.load_event_bilibili(time.localtime())
     account_finish = {}
     farm_list = total["accounts"]
     # first routine
