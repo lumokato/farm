@@ -91,7 +91,7 @@ class ShatuApi(BaseApi):
     def buy_stamina(self, times: int):
         self.load_index()
         if times > self.recovery:
-            for i in range(times):
+            for i in range(times - self.recovery):
                 if self.user_stamina < 878:
                     temp1 = self.client.callapi('shop/recover_stamina', {'current_currency_num': self.user_jewel+self.paid_jewel})
                     self.user_jewel = temp1['user_jewel']['free_jewel']
