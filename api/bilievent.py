@@ -141,9 +141,12 @@ def load_event_bilibili(nowtime=datetime.datetime.now()):
             end_time = datetime.datetime.strptime(
                 item['end'], r"%Y/%m/%d %H:%M")
             if nowtime < end_time and nowtime > start_time and '普通关卡' in item['title']:
-                # print(item['title'])
-                return True
-    return False
+                print(item['title'])
+                if '3倍' in item['title']:
+                    return 3
+                else:
+                    return 2
+    return 0
 
 
 def load_battle_bilibili(nowtime=datetime.datetime.now()):
@@ -184,4 +187,4 @@ def time_battle_bilibili(nowtime=datetime.datetime.now()):
 
 
 if __name__ == '__main__':
-    print(time_battle_bilibili(datetime.datetime.now()))
+    print(load_event_bilibili(datetime.datetime.now()))

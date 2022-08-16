@@ -231,7 +231,11 @@ class ShatuApi(BaseApi):
         return self.user_stamina > 20
 
     # 按账号解锁状态刷N图
-    def shuatu_N(self, buy_stamina):
+    def shuatu_N(self, N_event):
+        if N_event == 3:
+            buy_stamina = 6
+        else:
+            buy_stamina = 0
         quest_N = []
         for tu_num in self.quest_dict.keys():
             if tu_num >= 11001001 and tu_num < 11099001:
@@ -249,19 +253,19 @@ class ShatuApi(BaseApi):
         random.shuffle(shuatu)
         for tu_num in shuatu:
             # 买体力次数更改为0
-            if not self.quest(tu_num, shuatu_count, (0 if buy_stamina else 0)):
+            if not self.quest(tu_num, shuatu_count, buy_stamina):
                 return False
         return self.user_stamina > 20
 
     # 按N2状态刷图
-    def shuatu_daily(self, N2_status=bilievent.load_event_bilibili()):
+    def shuatu_daily(self, N_event):
         self.home_index()    # 刷图前读取一次刷图列表
         if self.num_ticket < 50:
             print('扫荡券过少,请检查账号状态')
             return True
-        if N2_status:
+        if N_event:
             print('    刷N图')
-            self.shuatu_N(N2_status)
+            self.shuatu_N(N_event)
         else:
             # 非N2时只刷H图
             self.shuatu_allH()

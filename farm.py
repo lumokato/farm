@@ -73,7 +73,7 @@ def equip_donate():
 
 
 # 账号日常
-def daily_matters(vid, uid):
+def daily_matters(vid, uid, N_event):
     log = logger('farm')
     try:
         App = ShatuApi(vid, uid, total['access_key'])
@@ -87,12 +87,12 @@ def daily_matters(vid, uid):
         App.training_skip()     # 探索本
         App.mission()   # 收取任务
         App.present()   # 收取礼物
-        App.shuatu_daily(bilievent.load_event_bilibili())  # 刷图
+        App.shuatu_daily(N_event)  # 刷图
         App.mission()   # 收取任务
         # 如果收取任务时升级，再次执行刷图函数
         App.load_index()
         if App.user_stamina > 80:
-            App.shuatu_daily(bilievent.load_event_bilibili())
+            App.shuatu_daily(N_event)
         # 地下城捐赠
         if not bilievent.load_battle_bilibili():
             for i, clan in enumerate(bind['clan']):
@@ -109,12 +109,13 @@ def daily_matters(vid, uid):
 
 def farm_daily():
     start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    N_event = bilievent.load_event_bilibili(start_time)
     account_finish = {}
     farm_list = total["accounts"]
     # first routine
     for i, account in enumerate(farm_list):
         try:
-            finish_status = daily_matters(account["vid"], account["uid"])
+            finish_status = daily_matters(account["vid"], account["uid"], N_event)
             if finish_status:
                 account_finish[i] = 1
                 print('已完成账号数'+str(sum(account_finish.values()))+'个')
@@ -126,7 +127,7 @@ def farm_daily():
     for i, account in enumerate(farm_list):
         if i not in account_finish.keys():
             try:
-                finish_status = daily_matters(account["vid"], account["uid"])
+                finish_status = daily_matters(account["vid"], account["uid"], N_event)
                 if finish_status:
                     account_finish[i] = 1
                 else:
