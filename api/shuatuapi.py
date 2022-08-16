@@ -1,7 +1,6 @@
 from api.normallist import shuatu_list
 from .baseapi import BaseApi
 import time
-import api.bilievent as bilievent
 import random
 
 

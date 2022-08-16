@@ -6,7 +6,6 @@ from api.shuatuapi import ShatuApi
 from api.zhuangbeiapi import ZhuangbeiApi
 import api.bilievent as bilievent
 from log import logger
-import id
 from json import load, dump
 from os.path import exists
 import datetime
@@ -20,6 +19,9 @@ if exists('account.json'):
 if exists('bind.json'):
     with open('bind.json', encoding='utf-8') as fp:
         bind = load(fp)
+
+with open('equip_id.json', encoding='utf-8') as fp:
+    equip_id = load(fp)
 
 
 def save_total():
@@ -62,8 +64,8 @@ def equip_donate():
                         if not donate_continue:
                             break
                     donate_name = bind['users'][str(donate[0])]
-                    if donate[2] in id.equip_id:
-                        equip_name = id.equip_id[donate[2]]
+                    if str(donate[2]) in equip_id:
+                        equip_name = equip_id[str(donate[2])]
                     else:
                         equip_name = str(donate[2])
                     print('已向 ' + donate_name + ' 捐赠装备 ' + equip_name)

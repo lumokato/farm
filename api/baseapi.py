@@ -1,11 +1,13 @@
 from .pcrclient import PCRClient
 import time
-import id
 from json import load
 
 
 with open('account.json', encoding='utf-8') as fp:
     total_api = load(fp)
+
+with open('unit_id.json', encoding='utf-8') as fp:
+    unit_id_dict = load(fp)
 
 
 class BaseApi:
@@ -22,7 +24,7 @@ class BaseApi:
         self.client = PCRClient(viewer_id)
         self.load, self.home = self.client.login(uid, access_key)
         self.home_index()
-        self.unit_id_dict = id.unit_id
+        self.unit_id_dict = unit_id_dict
         # print('已登录账号'+str(viewer_id))
 
     # 账号基本信息
@@ -244,7 +246,7 @@ class BaseApi:
                     'deck/update', {'deck_number': 4, 'unit_id_1': 1, 'unit_id_2': 0, 'unit_id_3': 0, 'unit_id_4': 0, 'unit_id_5': 0})
                 temp3 = self.client.callapi('dungeon/battle_start', {'quest_id': quest_id, 'unit_list': [{'owner_viewer_id': donate_id, 'unit_id': user_unit[0]}, {'owner_viewer_id': self.viewer_id, 'unit_id': 0}, {
                                             'owner_viewer_id': self.viewer_id, 'unit_id': 0}, {'owner_viewer_id': self.viewer_id, 'unit_id': 0}, {'owner_viewer_id': self.viewer_id, 'unit_id': 0}], 'disable_skin': 1, 'support_battle_rarity': 0})
-                print('已捐赠给'+str(donate_id)+'角色'+id.unit_id[user_unit[0]])
+                print('已捐赠给'+str(donate_id)+'角色'+unit_id_dict[str(user_unit[0])])
             if 'battle_log_id' in temp3:
                 return True
                 # self.client.callapi('dungeon/reset', {'dungeon_area_id': dungeon_id})
@@ -358,7 +360,7 @@ class BaseApi:
                     chara_id = int(chara['exchange_data']['unit_id'])
                 else:
                     chara_id = int(chara['id'])
-                chara_list += self.unit_id_dict[chara_id]+'，'
+                chara_list += self.unit_id_dict[str(chara_id)]+'，'
             print('  免费十连扭蛋结果为：'+str(chara_list)+'时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         if 'prize_reward_info' in temp:
             prize_list = ''
@@ -386,7 +388,7 @@ class BaseApi:
                     if chara_id == 107001:
                         print('已抽到当期up')
                         check_up = 1
-                chara_list += self.unit_id_dict[chara_id]+'，'
+                chara_list += self.unit_id_dict[str(chara_id)]+'，'
         print('第'+str(gacha_total)+'次扭蛋结果为：' +
               str(chara_list)+'剩余免费钻'+str(self.user_jewel))
         return check_up
@@ -394,7 +396,7 @@ class BaseApi:
     # 查box
     def check_box(self, chara_id):
         if chara_id in self.unit_list:
-            print(str(self.viewer_id)+'已抽到'+self.unit_id_dict[chara_id])
+            print(str(self.viewer_id)+'已抽到'+self.unit_id_dict[str(chara_id)])
             return 0
         else:
             print(str(self.viewer_id)+'未抽到')
