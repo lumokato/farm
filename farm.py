@@ -75,7 +75,8 @@ def equip_donate():
 
 
 # 账号日常
-def daily_matters(vid, uid, N_event):
+def daily_matters(vid, uid):
+    N_event = total['N_event']
     log = logger('farm')
     try:
         App = ShatuApi(vid, uid, total['access_key'])
@@ -109,15 +110,21 @@ def daily_matters(vid, uid, N_event):
         return False
 
 
+def change_n_event():
+    now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    N_event = bilievent.load_event_bilibili(datetime.datetime.strptime(now_time, "%Y-%m-%d %H:%M:%S"))
+    total['N_event'] = N_event
+    save_total()
+
+
 def farm_daily():
     start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    N_event = bilievent.load_event_bilibili(datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S"))
     account_finish = {}
     farm_list = total["accounts"]
     # first routine
     for i, account in enumerate(farm_list):
         try:
-            finish_status = daily_matters(account["vid"], account["uid"], N_event)
+            finish_status = daily_matters(account["vid"], account["uid"])
             if finish_status:
                 account_finish[i] = 1
                 print('已完成账号数'+str(sum(account_finish.values()))+'个')
@@ -129,7 +136,7 @@ def farm_daily():
     for i, account in enumerate(farm_list):
         if i not in account_finish.keys():
             try:
-                finish_status = daily_matters(account["vid"], account["uid"], N_event)
+                finish_status = daily_matters(account["vid"], account["uid"])
                 if finish_status:
                     account_finish[i] = 1
                 else:
@@ -212,8 +219,8 @@ def battle_remove(scheduler):
 if __name__ == "__main__":
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     scheduler.add_job(equip_donate, 'cron', minute='20')
+    scheduler.add_job(change_n_event, 'cron', start_date='2022-09-23 05:10:00', hour='5', minute='10')
     scheduler.add_job(farm_daily, 'cron', hour='6,18', minute='30')
     scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
     scheduler.add_job(battle_remove, 'cron', day='23', hour='12', args=[scheduler])
-    # farm_daily()
     scheduler.start()

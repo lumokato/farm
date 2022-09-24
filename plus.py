@@ -3,6 +3,7 @@
 '''
 from api.baseapi import BaseApi
 from api.friendapi import FriendApi
+from api.gonghuiapi import GonghuiApi
 from log import logger
 from json import load, dump
 from os.path import exists
@@ -148,6 +149,37 @@ def farm_back():
         f.write('本次手动捐赠共成功处理'+str(finish_count)+'个账号, 后续补充处理'+str(finish_count_plus - finish_count)+'个账号, 开始时间为'+start_time+', 结束时间为'+end_time+'\n')
         if fail_account:
             f.write('未成功处理账号共'+str(len(fail_account))+'个')
+
+
+# 移动人员
+def move_member(mem_dict):
+    message = ''
+    move_list = []
+    clan_remove = {}
+    for account in total["accounts"]:
+        if account['vid'] in mem_dict.keys():
+            move_list.append(account)
+            if account['clan_id'] not in clan_remove.keys():
+                clan_remove[account['clan_id']] = [account['vid']]
+            else:
+                clan_remove[account['clan_id']].append(account['vid'])
+
+    for clan in total['clan']:
+        if clan['clan_id'] in clan_remove.keys():
+            App = GonghuiApi(clan['owner'])
+            mem_clan = clan_remove[clan['clan_id']]
+            for mem in mem_clan:
+                msg = App.remove_members(mem)
+                if msg:
+                    message += msg
+    for move_mem in move_list:
+        App = GonghuiApi(move_mem['vid'])
+        msg = App.join_clan(mem_dict[move_mem['vid']])
+        if msg:
+            message += msg
+    print(message)
+    with open('./log/total.txt', 'a', encoding='utf-8') as f:
+        f.write(message)
 
 
 if __name__ == '__main__':
