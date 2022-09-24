@@ -370,7 +370,7 @@ class BaseApi:
 
     # 水猫复刻池选取碎片（临时）
     def gacha_select(self):
-        self.client.callapi('gacha/select_prize', {'prizegacha_id': 100002, 'item_id': 31079})
+        self.client.callapi('gacha/select_prize', {'prizegacha_id': 100020, 'item_id': 31079})
 
     # 抽取当期up
     def gacha_up(self, gacha_total, gacha_id, exchange_id):

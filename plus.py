@@ -49,6 +49,19 @@ def jewel_plus_all():
         log.exception(e)
 
 
+# 免费十连批量选择附奖
+def prize_gacha():
+    log = logger('farm-')
+    try:
+        for account in total["accounts"]:
+            print('已登录账号'+str(account['vid']))
+            App = BaseApi(account['vid'], account['uid'], total['access_key'])
+            App.load_index()
+            App.gacha_select()
+    except Exception as e:
+        log.exception(e)
+
+
 # 农场新手活动全解锁
 def farm_mission_all():
     log = logger('friend-')
