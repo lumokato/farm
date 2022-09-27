@@ -182,5 +182,39 @@ def move_member(mem_dict):
         f.write(message)
 
 
+# 检查所有账号场次
+def check_group():
+    App = GonghuiApi(total["accounts"][0]['vid'])
+    arena_dict = {}
+    grand_dict = {}
+    for account in total["accounts"]:
+        res = App.client.callapi('profile/get_profile', {'target_viewer_id': int(account['vid'])})
+        arena = res['user_info']['arena_group']
+        grand = res['user_info']['grand_arena_group']
+        if arena not in arena_dict.keys():
+            arena_dict[arena] = [account['vid']]
+        else:
+            arena_dict[arena].append(account['vid'])
+        if grand not in grand_dict.keys():
+            grand_dict[grand] = [account['vid']]
+        else:
+            grand_dict[grand].append(account['vid'])
+    with open('group.json', 'w', encoding='utf-8') as fp:
+        dump(arena, fp, indent=4, ensure_ascii=False)
+    with open('group.json', 'a', encoding='utf-8') as fp:
+        dump(grand, fp, indent=4, ensure_ascii=False)
+    grand_account = {}
+    for grand in grand_dict.keys():
+        if grand > 0:
+            for account in total["accounts"]:
+                if account['vid'] == grand_dict[grand][0]:
+                    grand_account[grand] = {
+                        "viewer_id": account['vid'],
+                        "uid": account['uid']
+                        }
+    with open('grand_account.json', 'w', encoding='utf-8') as fp:
+        dump(grand_account, fp, indent=4, ensure_ascii=False)
+
+
 if __name__ == '__main__':
     farm_back()
