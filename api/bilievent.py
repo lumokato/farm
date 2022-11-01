@@ -62,6 +62,7 @@ def extract_calendar_data(js_text):
     data_str = re.search(r'\[.*?\]', js_text, re.S).group(0)
     for keyword in keyword_list:
         data_str = data_str.replace(keyword, f'"{keyword}"')
+        data_str = data_str.replace('//', '')
     data = ast.literal_eval(data_str)
     # 解析活动内容html
     for i in range(len(data)):

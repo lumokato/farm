@@ -119,6 +119,7 @@ def farm_back():
             if clan['clan_id'] == account['clan_id'] and clan['donate_user']:
                 try:
                     App = BaseApi(account["vid"], account["uid"], total['access_key'])
+                    App.load_index()
                     dun = App.dungeon(clan['donate_user'])
                     if dun:
                         bind['clan'][j]['donate_times'] += 1
@@ -134,6 +135,7 @@ def farm_back():
                 if i not in account_finish.keys():
                     try:
                         App = BaseApi(account["vid"], account["uid"], total['access_key'])
+                        App.load_index()
                         dun = App.dungeon(clan['donate_user'])
                         if dun:
                             bind['clan'][j]['donate_times'] += 1
