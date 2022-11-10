@@ -360,7 +360,10 @@ class BaseApi:
                     chara_id = int(chara['exchange_data']['unit_id'])
                 else:
                     chara_id = int(chara['id'])
-                chara_list += self.unit_id_dict[str(chara_id)]+'，'
+                if chara['id'] != 90005 or chara['exchange_data']['rarity'] == '3':
+                    chara_list += self.unit_id_dict[str(chara_id)]+'(3)，'
+                else:
+                    chara_list += self.unit_id_dict[str(chara_id)]+'，'
             print('  免费十连扭蛋结果为：'+str(chara_list)+'时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(temp['servertime'])))
         if 'prize_reward_info' in temp:
             prize_list = ''
@@ -368,9 +371,11 @@ class BaseApi:
                 prize_list += str(prize['rarity']) + '，'
             print('  附奖等级为：'+str(prize_list))
 
-    # 水猫复刻池选取碎片（临时）
+    # 复刻池选取碎片（临时）
     def gacha_select(self):
-        self.client.callapi('gacha/select_prize', {'prizegacha_id': 100020, 'item_id': 31079})
+        # temp = self.client.callapi('gacha/prizegacha_data', {})
+        temp = self.client.callapi('gacha/select_prize', {'prizegacha_id': 100024, 'item_id': 31097})
+        return temp
 
     # 抽取当期up
     def gacha_up(self, gacha_total, gacha_id, exchange_id):
