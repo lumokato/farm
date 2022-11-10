@@ -361,7 +361,7 @@ class BaseApi:
                 else:
                     chara_id = int(chara['id'])
                 chara_list += self.unit_id_dict[str(chara_id)]+'，'
-            print('  免费十连扭蛋结果为：'+str(chara_list)+'时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+            print('  免费十连扭蛋结果为：'+str(chara_list)+'时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(temp['servertime'])))
         if 'prize_reward_info' in temp:
             prize_list = ''
             for prize in temp['prize_reward_info'].values():

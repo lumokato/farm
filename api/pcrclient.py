@@ -147,7 +147,10 @@ class PCRClient:
         if "viewer_id" in ret_header:
             if ret_header["viewer_id"] is not None and ret_header["viewer_id"] != 0 and ret_header["viewer_id"] != self.viewer_id:
                 self.viewer_id = int(ret_header["viewer_id"])
-        return ret["data"]
+        answer = ret["data"]
+        if 'servertime' in ret['data_headers']:
+            answer['servertime'] = ret['data_headers']['servertime']
+        return answer
 
     def login(self, uid, access_key):
         while True:
