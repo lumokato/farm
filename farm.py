@@ -82,6 +82,13 @@ def daily_matters(vid, uid):
         App = ShatuApi(vid, uid, total['access_key'])
         App.load_index()    # 获取账户信息
         App.room()  # 公会小屋
+        # 地下城捐赠
+        if not bilievent.load_battle_bilibili():
+            for i, clan in enumerate(bind['clan']):
+                if clan['clan_id'] == App.clan_id and clan['donate_user']:
+                    dun = App.dungeon(clan['donate_user'])
+                    if dun:
+                        bind['clan'][i]['donate_times'] += 1
         if datetime.datetime.now().weekday() == 0:
             App.arena_reward()  # 收取双场币
             # App.shop_item()  # 商店购买
@@ -96,13 +103,6 @@ def daily_matters(vid, uid):
         App.load_index()
         if App.user_stamina > 80:
             App.shuatu_daily(N_event)
-        # 地下城捐赠
-        if not bilievent.load_battle_bilibili():
-            for i, clan in enumerate(bind['clan']):
-                if clan['clan_id'] == App.clan_id and clan['donate_user']:
-                    dun = App.dungeon(clan['donate_user'])
-                    if dun:
-                        bind['clan'][i]['donate_times'] += 1
         return True
     except Exception as e:
         log.exception(e)
@@ -211,6 +211,7 @@ def refresh_clan(seq='before'):
 def battle_remove(scheduler):
     clan_time = bilievent.time_battle_bilibili(datetime.datetime.now())
     if clan_time:
+        send_wechat('将于'+str(clan_time[0]-datetime.timedelta(hours=9.5))+'移除农场人员')
         scheduler.add_job(refresh_clan, 'date', run_date=clan_time[0]-datetime.timedelta(hours=9.5), args=['before'])
         scheduler.add_job(refresh_clan, 'date', run_date=clan_time[1]+datetime.timedelta(minutes=2), args=['after'])
         scheduler.add_job(refresh_clan, 'date', run_date=clan_time[1]+datetime.timedelta(hours=7), args=['after'])

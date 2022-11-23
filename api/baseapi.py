@@ -116,9 +116,9 @@ class BaseApi:
                 'mission/index', {'request_flag': {'quest_clear_rank': 0}})
         time.sleep(4)
         wait_accept = 0
-        for mission in temp['missions'].keys():
+        for mission in temp['missions']:
             if mission is not None:
-                if temp['missions'][mission]['mission_status'] == 1:
+                if mission['mission_status'] == 1:
                     wait_accept = 1
                     break
         if wait_accept:
