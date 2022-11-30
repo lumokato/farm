@@ -34,6 +34,12 @@ def save_bind():
         dump(bind, fp, indent=4, ensure_ascii=False)
 
 
+def save_total():
+    global total
+    with open('account.json', 'w', encoding='utf-8') as fp:
+        dump(total, fp, indent=4, ensure_ascii=False)
+
+
 # 世界Boss活动全部收取
 def jewel_plus_all():
     log = logger('jewel-')
@@ -153,32 +159,119 @@ def farm_back():
             f.write('未成功处理账号共'+str(len(fail_account))+'个')
 
 
-# 移动人员
-def move_member(mem_dict):
-    message = ''
-    move_list = []
-    clan_remove = {}
+# 检查农场号所在工会
+def check_clan_all():
+    equip_account = {}
+    farm_account = {}
+    for clan in total["clan"]:
+        equip_account[clan["clan_id"]] = []
+        farm_account[clan["clan_id"]] = []
     for account in total["accounts"]:
-        if account['vid'] in mem_dict.keys():
-            move_list.append(account)
+        if account["equip"]:
+            equip_account[account["clan_id"]].append(account["vid"])
+        elif account["clan_id"]:
+            farm_account[account["clan_id"]].append(account["vid"])
+    # 检查clanid错误
+    App = GonghuiApi(total["accounts"][0]["vid"], total["accounts"][0]["uid"], total['access_key'])
+    for clan in equip_account:
+        members = App.client.callapi('clan/others_info', {'clan_id': clan})['clan']['members']
+        mem_query = []
+        for mem in members:
+            mem_query.append(mem['viewer_id'])
+        for member in equip_account[clan]:
+            if member not in mem_query:
+                print(member, clan)
+        for member in farm_account[clan]:
+            if member not in mem_query:
+                print(member, clan)
+    # 打印信息
+    with open('./log/check.txt', 'a', encoding='utf-8') as f:
+        for clan in equip_account.keys():
+            f.write('工会'+str(clan)+'装备号'+str(len(equip_account[clan]))+'个, 包含'+str(equip_account[clan])+'\n')
+        for clan in farm_account.keys():
+            f.write('工会'+str(clan)+'农场号'+str(len(farm_account[clan]))+'个, 包含'+str(farm_account[clan])+'\n')
+
+
+# 检查装备号
+def check_equip():
+    equip_a = {0: []}
+    equip_b = {0: []}
+    for clan in total["clan"]:
+        equip_a[clan["clan_id"]] = []
+        equip_b[clan["clan_id"]] = []
+    equip_account = {}
+    for clan in total["clan"]:
+        equip_account[clan["clan_id"]] = []
+    for account in total["accounts"]:
+        if account["equip"]:
+            equip_account[account["clan_id"]].append(account["vid"])
+    App = GonghuiApi(total["accounts"][0]["vid"], total["accounts"][0]["uid"], total['access_key'])
+    for account in total["accounts"]:
+        res = App.client.callapi('profile/get_profile', {'target_viewer_id': int(account["vid"])})
+        if sum(res['quest_info']['normal_quest']) > 270:
+            equip_a[account["clan_id"]].append(account["vid"])
+            if account["clan_id"] and account["vid"] not in equip_account[account["clan_id"]]:
+                print(account["vid"])
+        elif sum(res['quest_info']['normal_quest']) > 190:
+            equip_b[account["clan_id"]].append(account["vid"])
+    # for clan in equip_account:
+    #     members = App.client.callapi('clan/others_info', {'clan_id': clan})['clan']['members']
+    #     mem_query = []
+    #     for mem in members:
+    #         mem_query.append(mem['viewer_id'])
+    #     for member in equip_account[clan]:
+    #         if member not in mem_query:
+    #             print(member, clan)
+    #     for member in farm_account[clan]:
+    #         if member not in mem_query:
+    #             print(member, clan)
+    # 打印信息
+    with open('./log/check.txt', 'a', encoding='utf-8') as f:
+        for clan in equip_a.keys():
+            f.write('工会'+str(clan)+'可用装备号'+str(len(equip_a[clan]))+'个, 包含'+str(equip_a[clan])+'\n')
+        for clan in equip_b.keys():
+            f.write('工会'+str(clan)+'备用装备号'+str(len(equip_b[clan]))+'个, 包含'+str(equip_b[clan])+'\n')
+
+
+# 批量修改equip状态
+def change_equip(equip_list):
+    for i, account in enumerate(total["accounts"]):
+        if account['vid'] in equip_list:
+            total["accounts"][i]["equip"] = 1
+        else:
+            total["accounts"][i]["equip"] = 0
+    save_total()
+
+
+# 移动人员
+def move_member(mem_list, move_clan):
+    message = ''
+    move_seq = {}
+    clan_remove = {}
+    for i, account in enumerate(total["accounts"]):
+        if account['vid'] in mem_list:
+            move_seq[account['vid']] = i
             if account['clan_id'] not in clan_remove.keys():
                 clan_remove[account['clan_id']] = [account['vid']]
             else:
                 clan_remove[account['clan_id']].append(account['vid'])
 
     for clan in total['clan']:
-        if clan['clan_id'] in clan_remove.keys():
+        if clan['clan_id'] in clan_remove.keys() and clan['clan_id']:
             App = GonghuiApi(clan['owner'])
             mem_clan = clan_remove[clan['clan_id']]
             for mem in mem_clan:
                 msg = App.remove_members(mem)
                 if msg:
+                    total["accounts"][move_seq[mem]]["clan_id"] = 0
                     message += msg
-    for move_mem in move_list:
-        App = GonghuiApi(move_mem['vid'])
-        msg = App.join_clan(mem_dict[move_mem['vid']])
+    for move_mem in mem_list:
+        App = GonghuiApi(move_mem)
+        msg = App.join_clan(move_clan)
         if msg:
+            total["accounts"][move_seq[move_mem]]["clan_id"] = move_clan
             message += msg
+    save_total()
     print(message)
     with open('./log/total.txt', 'a', encoding='utf-8') as f:
         f.write(message)

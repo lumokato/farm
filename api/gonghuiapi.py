@@ -32,7 +32,7 @@ class GonghuiApi(BaseApi):
     def join_clan(self, clan_id: int):
         temp = self.client.callapi('clan/join', {'clan_id': clan_id, 'from_invite': 0})
         if 'clan_status' in temp:
-            if temp['clan_status'] == 2:
+            if temp['clan_status'] == 2: 
                 return (str(self.viewer_id) + '已加入' + str(clan_id) + '\n')
             elif temp['clan_status'] == 1:
                 return ('已申请' + '\n')

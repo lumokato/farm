@@ -97,12 +97,12 @@ def daily_matters(vid, uid):
         App.training_skip()     # 探索本
         App.mission()   # 收取任务
         App.present()   # 收取礼物
-        App.shuatu_daily(N_event)  # 刷图
+        App.shuatu_daily(N_event, total['max_level'])  # 刷图
         App.mission()   # 收取任务
         # 如果收取任务时升级，再次执行刷图函数
         App.load_index()
         if App.user_stamina > 80:
-            App.shuatu_daily(N_event)
+            App.shuatu_daily(N_event, total['max_level'])
         return True
     except Exception as e:
         log.exception(e)

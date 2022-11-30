@@ -72,7 +72,8 @@ class BaseApi:
 
     # 账号推图完成情况
     def home_index(self):
-        self.home = self.client.callapi("home/index", {'message_id': 1, 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
+        self.home = self.client.callapi(
+            "home/index", {'message_id': 1, 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
         self.quest_dict = {}
         for quest in self.home['quest_list']:
             if quest['clear_flg'] == 3 and quest['result_type'] == 2:
@@ -152,7 +153,8 @@ class BaseApi:
     # 进入公会小屋，收取体力
     def room(self):
         if self.viewer_id == 1423390712318:
-            print('账号'+str(self.viewer_id)+'跳过小屋,账号等级为'+str(self.team_level)+',免费钻量'+str(self.user_jewel)+',时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+            print('账号'+str(self.viewer_id)+'跳过小屋,账号等级为'+str(self.team_level)+',免费钻量' +
+                  str(self.user_jewel)+',时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
             return 0
         temp = self.client.callapi('room/start', {})
         if 'user_room_item_list' in temp:
@@ -164,7 +166,8 @@ class BaseApi:
                             temp1 = self.client.callapi(
                                 'room/level_up_start', {'floor_number': 1, 'serial_id': serial_id})
                             print('  升级家具' + str(serial_id))
-            print('账号'+str(self.viewer_id)+'已进入小屋,账号等级为'+str(self.team_level)+',免费钻量'+str(self.user_jewel)+',时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+            print('账号'+str(self.viewer_id)+'已进入小屋,账号等级为'+str(self.team_level)+',免费钻量' +
+                  str(self.user_jewel)+',时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
             # print('账号'+str(self.viewer_id)+'已进入小屋,时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         time.sleep(2)
         temp1 = self.client.callapi('room/receive_all', {})
@@ -210,12 +213,14 @@ class BaseApi:
         user_unit = [0, 0]
         if donate_id in mem_list:
             user_unit = [0, 0]
-            profile = self.client.callapi('/profile/get_profile', {'target_viewer_id': int(donate_id)})
+            profile = self.client.callapi(
+                '/profile/get_profile', {'target_viewer_id': int(donate_id)})
             if 'clan_support_units' in profile:
                 for unit in profile['clan_support_units']:
                     if unit['position'] < 3 and int(unit['unit_data']['unit_level']) > user_unit[1] and int(unit['unit_data']['unit_level']) - self.team_level < 31:
                         # 添加角色id与等级
-                        user_unit = [int(unit['unit_data']['id']), int(unit['unit_data']['unit_level'])]
+                        user_unit = [int(unit['unit_data']['id']), int(
+                            unit['unit_data']['unit_level'])]
         if user_unit[1] == 0:
             return False
         # 地下城流程
@@ -232,21 +237,18 @@ class BaseApi:
 
         time.sleep(2)
         if dungeon_rest:
-            temp = self.client.callapi(
-                'dungeon/enter_area', {'dungeon_area_id': dungeon_id})
+            temp = self.client.callapi('dungeon/enter_area', {'dungeon_area_id': dungeon_id})
             quest_id = int(temp['quest_id'])
             dispatch_unit_list = []
-            temp1 = self.client.callapi(
-                'dungeon/dispatch_unit_list_2', {'dungeon_area_id': dungeon_id})
+            temp1 = self.client.callapi('dungeon/dispatch_unit_list_2', {'dungeon_area_id': dungeon_id})
             for unit in temp1['dispatch_unit_list']:
-                dispatch_unit_list.append(
-                    [unit['unit_data']['id'], unit['owner_viewer_id']])
+                dispatch_unit_list.append([unit['unit_data']['id'], unit['owner_viewer_id']])
             if [user_unit[0], donate_id] in dispatch_unit_list:
-                self.client.callapi(
-                    'deck/update', {'deck_number': 4, 'unit_id_1': 1, 'unit_id_2': 0, 'unit_id_3': 0, 'unit_id_4': 0, 'unit_id_5': 0})
+                self.client.callapi('deck/update', {'deck_number': 4, 'unit_id_1': 1,
+                                    'unit_id_2': 0, 'unit_id_3': 0, 'unit_id_4': 0, 'unit_id_5': 0})
                 temp3 = self.client.callapi('dungeon/battle_start', {'quest_id': quest_id, 'unit_list': [{'owner_viewer_id': donate_id, 'unit_id': user_unit[0]}, {'owner_viewer_id': self.viewer_id, 'unit_id': 0}, {
                                             'owner_viewer_id': self.viewer_id, 'unit_id': 0}, {'owner_viewer_id': self.viewer_id, 'unit_id': 0}, {'owner_viewer_id': self.viewer_id, 'unit_id': 0}], 'disable_skin': 1, 'support_battle_rarity': 0})
-                print('已捐赠给'+str(donate_id)+'角色'+unit_id_dict[str(user_unit[0])])
+                print('已捐赠给'+str(donate_id)+'角色' + unit_id_dict[str(user_unit[0])])
             if 'battle_log_id' in temp3:
                 return True
                 # self.client.callapi('dungeon/reset', {'dungeon_area_id': dungeon_id})
@@ -296,7 +298,8 @@ class BaseApi:
 
     # 获取公主竞技场排名
     def grand_arena_ranking(self):
-        temp = self.client.callapi('grand_arena/ranking', {'limit': 20, 'page': 1})
+        temp = self.client.callapi(
+            'grand_arena/ranking', {'limit': 20, 'page': 1})
         if 'ranking' in temp:
             group_id = temp['grand_arena_info']['group']
             print(str(self.viewer_id) + '所在公主竞技场组别为' + str(group_id))
@@ -364,7 +367,8 @@ class BaseApi:
                     chara_list += self.unit_id_dict[str(chara_id)]+'(3)，'
                 else:
                     chara_list += self.unit_id_dict[str(chara_id)]+'，'
-            print('  免费十连扭蛋结果为：'+str(chara_list)+'时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(temp['servertime']))+'。')
+            print('  免费十连扭蛋结果为：'+str(chara_list)+'时间为' +
+                  time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(temp['servertime']))+'。')
         if 'prize_reward_info' in temp:
             prize_list = ''
             for prize in temp['prize_reward_info'].values():
@@ -374,7 +378,8 @@ class BaseApi:
     # 复刻池选取碎片（临时）
     def gacha_select(self):
         # temp = self.client.callapi('gacha/prizegacha_data', {})
-        temp = self.client.callapi('gacha/select_prize', {'prizegacha_id': 100024, 'item_id': 31097})
+        temp = self.client.callapi(
+            'gacha/select_prize', {'prizegacha_id': 100024, 'item_id': 31097})
         return temp
 
     # 抽取当期up
@@ -461,7 +466,8 @@ class BaseApi:
 
     # 主线任务与称号收取
     def mission_plus(self):
-        temp = self.client.callapi('mission/accept', {'type': 2, 'id': 0, 'buy_id': 0})
+        temp = self.client.callapi(
+            'mission/accept', {'type': 2, 'id': 0, 'buy_id': 0})
         jewel_accept = 0
         if 'rewards' in temp:
             for reward in temp['rewards']:
@@ -469,14 +475,17 @@ class BaseApi:
                     jewel_accept += int(reward['count'])
         print('    任务已获得钻石' + str(jewel_accept))
         time.sleep(3)
-        self.client.callapi('mission/accept', {'type': 4, 'id': 0, 'buy_id': 0})
+        self.client.callapi(
+            'mission/accept', {'type': 4, 'id': 0, 'buy_id': 0})
         time.sleep(3)
 
     # 女神祭
     def season_ticket(self):
-        temp = self.client.callapi('season_ticket_new/index', {'season_id': 10002})
+        temp = self.client.callapi(
+            'season_ticket_new/index', {'season_id': 10002})
         if 'missions' in temp:
-            temp1 = self.client.callapi('season_ticket_new/accept', {'season_id': 10002, 'mission_id': 0})
+            temp1 = self.client.callapi(
+                'season_ticket_new/accept', {'season_id': 10002, 'mission_id': 0})
             if 'seasonpass_level' in temp1:
                 print('    当前女神祭解锁等级为' + str(temp1['seasonpass_level']))
 
@@ -485,6 +494,7 @@ class BaseApi:
         if 'season_ticket' in self.home:
             level = self.home['season_ticket']['seasonpass_level']
             print('    女神祭等级为' + str(level))
-            temp = self.client.callapi('season_ticket_new/reward', {'season_id': 10002, 'level': 0, 'index': 0})
+            temp = self.client.callapi(
+                'season_ticket_new/reward', {'season_id': 10002, 'level': 0, 'index': 0})
             if 'received_rewards' in temp:
                 print('    已收取女神祭等级' + str(temp['received_rewards']))

@@ -257,12 +257,12 @@ class ShatuApi(BaseApi):
         return self.user_stamina > 20
 
     # 按N2状态刷图
-    def shuatu_daily(self, N_event):
+    def shuatu_daily(self, N_event, max_level):
         self.home_index()    # 刷图前读取一次刷图列表
         if self.num_ticket < 50:
             print('扫荡券过少,请检查账号状态')
             return True
-        if N_event:
+        if N_event or max_level - self.team_level > 20:
             print('    刷N图')
             self.shuatu_N(N_event)
         else:
