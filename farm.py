@@ -220,8 +220,7 @@ def battle_remove(scheduler):
 if __name__ == "__main__":
     scheduler = BlockingScheduler(timezone="Asia/Shanghai")
     scheduler.add_job(equip_donate, 'cron', minute='20')
-    scheduler.add_job(change_n_event, 'cron', start_date='2022-09-23 05:10:00', hour='5', minute='10')
     scheduler.add_job(farm_daily, 'cron', hour='6,18', minute='30')
     scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
-    scheduler.add_job(battle_remove, 'cron', day='23', hour='12', args=[scheduler])
+    scheduler.add_job(battle_remove, 'cron', day='22', hour='12', args=[scheduler])
     scheduler.start()
