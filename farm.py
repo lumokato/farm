@@ -83,7 +83,7 @@ def daily_matters(vid, uid):
         App.load_index()    # 获取账户信息
         App.room()  # 公会小屋
         # 地下城捐赠
-        if not bilievent.load_battle_bilibili():
+        if not bilievent.load_battle_cn():
             for i, clan in enumerate(bind['clan']):
                 if clan['clan_id'] == App.clan_id and clan['donate_user']:
                     dun = App.dungeon(clan['donate_user'])
@@ -112,7 +112,7 @@ def daily_matters(vid, uid):
 
 def change_n_event():
     now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    N_event = bilievent.load_event_bilibili(datetime.datetime.strptime(now_time, "%Y-%m-%d %H:%M:%S"))
+    N_event = bilievent.load_event_cn(datetime.datetime.strptime(now_time, "%Y-%m-%d %H:%M:%S"))
     total['N_event'] = N_event
     save_total()
 
@@ -209,7 +209,7 @@ def refresh_clan(seq='before'):
 
 # 会战前后移除过程
 def battle_remove(scheduler):
-    clan_time = bilievent.time_battle_bilibili(datetime.datetime.now())
+    clan_time = bilievent.time_battle_cn(datetime.datetime.now())
     if clan_time:
         send_wechat('将于'+str(clan_time[0]-datetime.timedelta(hours=9.5))+'移除农场人员')
         scheduler.add_job(refresh_clan, 'date', run_date=clan_time[0]-datetime.timedelta(hours=9.5), args=['before'])

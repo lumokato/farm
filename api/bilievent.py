@@ -1,5 +1,5 @@
 import urllib.request
-# import json
+import json
 import datetime
 # from os import truncate
 import re
@@ -187,5 +187,50 @@ def time_battle_bilibili(nowtime=datetime.datetime.now()):
     return False
 
 
+def load_event_cn(nowtime=datetime.datetime.now()):
+
+    data = json.loads(get_record('https://pcrbot.github.io/calendar-updater-action/cn.json'))
+
+    if data:
+        for item in data:
+            start_time = datetime.datetime.strptime(item['start_time'], "%Y/%m/%d %H:%M:%S")
+            end_time = datetime.datetime.strptime(item['end_time'], "%Y/%m/%d %H:%M:%S")
+            if nowtime < end_time and nowtime > start_time and 'N图' in item['name']:
+                print(item['name'])
+                if '3' in item['name']:
+                    return 3
+                else:
+                    return 2
+    return 0
+
+
+def load_battle_cn(nowtime=datetime.datetime.now()):
+
+    data = json.loads(get_record('https://pcrbot.github.io/calendar-updater-action/cn.json'))
+
+    if data:
+        for item in data:
+            start_time = datetime.datetime.strptime(item['start_time'], "%Y/%m/%d %H:%M:%S")
+            end_time = datetime.datetime.strptime(item['end_time'], "%Y/%m/%d %H:%M:%S")
+            if nowtime < end_time and nowtime > start_time and '公会战' in item['name']:
+                # print(item['name'])
+                return start_time, end_time
+    return False
+
+
+def time_battle_cn(nowtime=datetime.datetime.now()):
+
+    data = json.loads(get_record('https://pcrbot.github.io/calendar-updater-action/cn.json'))
+
+    if data:
+        for item in data:
+            start_time = datetime.datetime.strptime(item['start_time'], "%Y/%m/%d %H:%M:%S")
+            end_time = datetime.datetime.strptime(item['end_time'], "%Y/%m/%d %H:%M:%S")
+            if nowtime < end_time and nowtime - start_time < datetime.timedelta(30) and '公会战' in item['name']:
+                # print(item)
+                return start_time, end_time
+    return False
+
+
 if __name__ == '__main__':
-    print(load_event_bilibili(datetime.datetime.now()))
+    print(load_event_cn(datetime.datetime.now()))
