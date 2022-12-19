@@ -121,6 +121,7 @@ def farm_daily():
     start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     account_finish = {}
     farm_list = total["accounts"]
+    change_n_event()
     # first routine
     for i, account in enumerate(farm_list):
         try:
