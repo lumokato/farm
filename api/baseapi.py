@@ -31,6 +31,9 @@ class BaseApi:
     def load_index(self):
         self.tower_coin = self.arena_coin = self.grand_arena_coin = self.clan_battle_coin = 0   # 初始化
         self.load = self.client.callapi("load/index", {"carrier": "google"})
+        if 'user_info' not in self.load:
+            self.load, self.home = self.client.login(self.uid, self.access_key)
+            # self.load = self.client.callapi("load/index", {"carrier": "google"})
         self.user_stamina = self.load['user_info']['user_stamina']
         self.viewer_id = self.load['user_info']['viewer_id']
         self.clan_like = self.load['clan_like_count']   # 0为未点赞，1为已点赞
@@ -72,8 +75,10 @@ class BaseApi:
 
     # 账号推图完成情况
     def home_index(self):
-        self.home = self.client.callapi(
-            "home/index", {'message_id': 1, 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
+        self.home = self.client.callapi("home/index", {'message_id': 1, 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
+        if 'quest_list' not in self.home:
+            self.load, self.home = self.client.login(self.uid, self.access_key)
+            # self.home = self.client.callapi("home/index", {'message_id': 1, 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
         self.quest_dict = {}
         for quest in self.home['quest_list']:
             if quest['clear_flg'] == 3 and quest['result_type'] == 2:
@@ -205,8 +210,11 @@ class BaseApi:
     def dungeon(self, donate_id):
         # 查询捐赠角色
         mem_list = []
-        members = self.client.callapi(
-            'clan/others_info', {'clan_id': self.clan_id})['clan']['members']
+        members = self.client.callapi('clan/others_info', {'clan_id': self.clan_id})
+        if 'clan' not in members:
+            self.client.login(self.uid, self.access_key)
+            members = self.client.callapi('clan/others_info', {'clan_id': self.clan_id})
+        members = members['clan']['members']
         for mem in members:
             mem_list.append(mem['viewer_id'])
         # 选择捐献的id
