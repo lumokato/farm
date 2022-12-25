@@ -188,7 +188,7 @@ def clear_daily():
 def refresh_clan(seq='before'):
     message = "移除人员:\n"
     for clan in total['clan']:
-        if clan['equip']:
+        if clan['dungeon']:
             App = GonghuiApi(clan['owner'])
             mem_clan = App.check_members()
             mem_farm = []
