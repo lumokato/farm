@@ -233,7 +233,7 @@ if __name__ == "__main__":
     scheduler.add_job(farm_daily, 'cron', hour='6,18', minute='30')
     scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
     scheduler.add_job(battle_remove, 'cron', day='22', hour='0', args=[scheduler])
-    if datetime.datetime.today().day > 21:
+    if datetime.datetime.today().day > 21 and datetime.datetime.today().day < 26:
         battle_remove(scheduler)
     scheduler.add_job(refresh_clan, 'cron', day='last', hour='0, 2, 6, 9', minute='1', args=['after'])
     scheduler.add_job(plus.farm_back, 'cron', day='last', hour='3', minute='25')
