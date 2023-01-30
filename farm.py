@@ -10,6 +10,8 @@ from json import load, dump
 from os.path import exists
 import datetime
 from wechat import send_wechat
+import calendar
+import plus
 
 
 if exists('account.json'):
@@ -186,6 +188,7 @@ def clear_daily():
 
 # 移除人员
 def refresh_clan(seq='before'):
+    send_wechat('开始移除流程')
     message = "移除人员:\n"
     for clan in total['clan']:
         if clan['dungeon']:
@@ -202,26 +205,36 @@ def refresh_clan(seq='before'):
                 if mem not in mem_farm:
                     msg = App.remove_members(mem)
                     message += msg
-    print(message)
+    # print(message)
     send_wechat(message)
     with open('./log/total.txt', 'a', encoding='utf-8') as f:
         f.write(message)
 
 
-# 会战前后移除过程
+# 会战前移除过程
 def battle_remove(scheduler):
-    clan_time = bilievent.time_battle_cn(datetime.datetime.now())
-    if clan_time:
-        send_wechat('将于'+str(clan_time[0]-datetime.timedelta(hours=9.5))+'移除农场人员')
-        scheduler.add_job(refresh_clan, 'date', run_date=clan_time[0]-datetime.timedelta(hours=9.5), args=['before'])
-        scheduler.add_job(refresh_clan, 'date', run_date=clan_time[1]+datetime.timedelta(minutes=2), args=['after'])
-        scheduler.add_job(refresh_clan, 'date', run_date=clan_time[1]+datetime.timedelta(hours=7), args=['after'])
+    today = datetime.datetime.today()
+    monthdays = calendar.monthrange(today.year, today.month)
+    clan_time = bilievent.time_battle_cn(datetime.datetime.now())[0]
+    if not clan_time:
+        clan_time = datetime.datetime(today.year, today.month, monthdays[1]-5, 5, 0)
+    send_wechat('将于'+str(clan_time-datetime.timedelta(hours=9.5))+'移除农场人员')
+    scheduler.add_job(refresh_clan, 'date', run_date=clan_time-datetime.timedelta(hours=9.5), args=['before'])
+
+
+def battle_after(scheduler):
+    scheduler.add_job(refresh_clan, 'cron', day='last', hour='0, 2, 6, 9', minute='1', args=['after'])
+    refresh_clan('after')
 
 
 if __name__ == "__main__":
-    scheduler = BlockingScheduler(timezone="Asia/Shanghai")
+    scheduler = BlockingScheduler(timezone="Asia/Shanghai", job_defaults={'max_instances': 5})
     scheduler.add_job(equip_donate, 'cron', minute='20')
     scheduler.add_job(farm_daily, 'cron', hour='6,18', minute='30')
     scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
-    scheduler.add_job(battle_remove, 'cron', day='22', hour='12', args=[scheduler])
+    scheduler.add_job(battle_remove, 'cron', day='22', hour='0', args=[scheduler])
+    if datetime.datetime.today().day > 21:
+        battle_remove(scheduler)
+    scheduler.add_job(refresh_clan, 'cron', day='last', hour='0, 2, 6, 9', minute='1', args=['after'])
+    scheduler.add_job(plus.farm_back, 'cron', day='last', hour='3', minute='25')
     scheduler.start()
