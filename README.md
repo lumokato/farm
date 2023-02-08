@@ -9,7 +9,8 @@
 
 ## 使用前准备
 
-1. 抓取农场号的viewer_id，uid与access_key。网络代理可参考https://github.com/Xiaodx912/PCRoxy。搜索抓取数据包中/tool/sdk_login，
+1. 抓取农场号的viewer_id，uid与access_key。网络代理可参考(https://github.com/Xiaodx912/PCRoxy)
+    搜索抓取数据包中/tool/sdk_login，其中
     Request:{"uid":"<uid>","access_key":"<access_key>"}
     Response:{"viewer_id":"<id>"}
 2. 在```account.json```中，"access_key"填入抓取的access_key（同一设备抓取的所有账号应该相同）。"clan"填入建好的每个农场的clan_id，农场会长viewer_id，是否开启捐赠玛娜与装备（1为捐赠）。"accounts"中填入每个农场号的viewer_id与uid，以及是否为装备号（1为装备号）。
