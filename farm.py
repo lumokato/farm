@@ -215,9 +215,11 @@ def refresh_clan(seq='before'):
 def battle_remove(scheduler):
     today = datetime.datetime.today()
     monthdays = calendar.monthrange(today.year, today.month)
-    clan_time = bilievent.time_battle_cn(datetime.datetime.now())[0]
-    if not clan_time:
+    clan_time_list = bilievent.time_battle_cn(datetime.datetime.now())
+    if not clan_time_list:
         clan_time = datetime.datetime(today.year, today.month, monthdays[1]-5, 5, 0)
+    else:
+        clan_time = clan_time_list[0]
     send_wechat('将于'+str(clan_time-datetime.timedelta(hours=9.5))+'移除农场人员')
     scheduler.add_job(refresh_clan, 'date', run_date=clan_time-datetime.timedelta(hours=9.5), args=['before'])
 

@@ -1,9 +1,12 @@
 {
+    "N_event": 0,
+    "max_level": 187,
     "access_key": "",
     "clan": [
         {
             "clan_id": 0,
             "owner": 0,
+            "dungeon": 0,
             "equip": 1
         }
     ],
