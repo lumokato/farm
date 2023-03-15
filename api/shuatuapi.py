@@ -20,7 +20,7 @@ def quest_stamina(quest_id: int):
         return 18
     elif quest_id >= 12007001 and quest_id < 12099001:
         return 20
-    elif quest_id == 18001001 or quest_id == 18001002:
+    elif quest_id >= 18001001 and quest_id <= 19001002:
         return 15
     elif quest_id < 11000000:
         return 8
