@@ -1,6 +1,6 @@
-'''
+"""
 一些一次性任务实现
-'''
+"""
 from api.baseapi import BaseApi
 from api.friendapi import FriendApi
 from api.gonghuiapi import GonghuiApi
@@ -115,7 +115,7 @@ def user_mission(vid):
 
 
 def farm_back():
-    '''会战结束手动捐一次'''
+    """会战结束手动捐一次"""
     start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     account_finish = {}
     farm_list = total["accounts"]
