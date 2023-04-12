@@ -7,6 +7,7 @@ from api.gonghuiapi import GonghuiApi
 from log import logger
 from json import load, dump
 from os.path import exists
+from api.satrokiapi import WebClient
 import time
 
 if exists('account.json'):
@@ -311,5 +312,18 @@ def check_group():
         dump(grand_account, fp, indent=4, ensure_ascii=False)
 
 
+def change_unit_name():
+    with open('unit_id.json', encoding='utf-8') as fp:
+        unit = load(fp)
+    web = WebClient()
+    for unit_id in unit.keys():
+        unit_name = web.get_unit_name(int(unit_id))
+        if unit_name != unit[unit_id]:
+            unit[unit_id] = unit_name
+
+    with open('unit_id_new.json', 'w', encoding='utf-8') as fp:
+        dump(unit, fp, indent=4, ensure_ascii=False)
+
+
 if __name__ == '__main__':
-    farm_back()
+    change_unit_name()
