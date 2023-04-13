@@ -238,7 +238,8 @@ class BaseApi:
             temp = self.client.callapi('dungeon/info', {})
         dungeon = temp['enter_area_id']
         dungeon_rest = temp['rest_challenge_count'][0]['count']
-        dungeon_id = temp['dungeon_area'][0]['dungeon_area_ids'][0]
+        dungeon_id = 31001
+        # dungeon_id = temp['dungeon_area'][0]['dungeon_area_ids'][0]
         # 如果已进入地下城, 直接撤退
         if dungeon:
             self.client.callapi('dungeon/reset', {'dungeon_area_id': dungeon})
