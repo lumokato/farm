@@ -25,6 +25,7 @@ def save_friend():
 
 def friend_mission():
     log = logger('friend')
+    blacklist = friend['blacklist']
     try:
         for i, friend_account in enumerate(friend["accounts"]):
             App = FriendApi(friend_account['vid'], friend_account['uid'], total['access_key'])
@@ -37,8 +38,11 @@ def friend_mission():
             if pending_list:
                 print(str(App.viewer_id)+'通过好友'+str(pending_list))
             for pd_user in pending_list:
-                App.friend_accept(pd_user)
-                friend["accounts"][i]['total_friend'] += 1
+                if pd_user not in blacklist:
+                    App.friend_accept(pd_user)
+                    friend["accounts"][i]['total_friend'] += 1
+                else:
+                    print(str(App.viewer_id)+'拒绝'+str(pd_user))
         save_friend()
     except Exception as e:
         log.exception(e)

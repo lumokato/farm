@@ -15,7 +15,7 @@ class GonghuiApi(BaseApi):
         if self.viewer_id == leader_id and remove_id in member_list:
             temp = self.client.callapi(
                 'clan/remove', {'clan_id': self.clan_id, 'remove_viewer_id': remove_id})
-            return ('已移出' + str(remove_id) + '\n')
+            return '已移出' + str(remove_id) + '\n'
 
     # 公会放人
     def accept_members(self, accept_list):
@@ -24,8 +24,8 @@ class GonghuiApi(BaseApi):
             request = temp['have_join_request']
         if request:
             temp = self.client.callapi('clan/join_request_list', {'clan_id': self.clan_id, 'page': 0, 'oldest_time': 0})
-            for id in accept_list:
-                self.client.callapi('clan/join_request_accept', {'request_viewer_id': id, 'clan_id': self.clan_id})
+            for accept_id in accept_list:
+                self.client.callapi('clan/join_request_accept', {'request_viewer_id': accept_id, 'clan_id': self.clan_id})
         return True
 
     # 加入公会
@@ -33,9 +33,9 @@ class GonghuiApi(BaseApi):
         temp = self.client.callapi('clan/join', {'clan_id': clan_id, 'from_invite': 0})
         if 'clan_status' in temp:
             if temp['clan_status'] == 2: 
-                return (str(self.viewer_id) + '已加入' + str(clan_id) + '\n')
+                return str(self.viewer_id) + '已加入' + str(clan_id) + '\n'
             elif temp['clan_status'] == 1:
-                return ('已申请' + '\n')
+                return '已申请' + '\n'
 
     # 解散工会
     def break_clan(self):

@@ -194,7 +194,7 @@ class BaseApi:
             if gacha['id'] < 20000:
                 free_gacha_id = gacha['id']
             # 公主祭典id为500xx
-            if gacha['id'] > 30000 and gacha['id'] < 70000:
+            if 30000 < gacha['id'] < 70000:
                 campaign_gacha_id = gacha['id']
                 exchange_id = gacha['exchange_id']
         if 'campaign_info' in temp:
