@@ -12,6 +12,23 @@ with open('unit_id.json', encoding='utf-8') as fp:
 lck = asyncio.Lock()
 
 
+def all_account(func):
+    async def single_account(account, func_single, sem):
+        async with sem:
+            client = BaseApi(account['vid'], account['uid'], total_api['access_key'])
+            await client.query(client.load_index)
+            await func_single
+
+    async def all_main():
+        task_list = []
+        sem = asyncio.Semaphore(10)
+        for account in total_api["accounts"]:
+            task = asyncio.create_task(single_account(account, func, sem))
+            task_list.append(task)
+        await asyncio.gather(*task_list)
+    asyncio.run(all_main())
+
+
 class BaseApi:
     def __init__(self, viewer_id, uid=None, access_key=None):
         if not uid:

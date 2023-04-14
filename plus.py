@@ -1,13 +1,14 @@
 """
 一些一次性任务实现
 """
-from api.baseapi import BaseApi
+from api.baseapi import BaseApi, all_account
 from api.friendapi import FriendApi
 from api.gonghuiapi import GonghuiApi
 from log import logger
 from json import load, dump
 from os.path import exists
 from api.satrokiapi import WebClient
+import asyncio
 import time
 
 
@@ -42,76 +43,11 @@ def save_total():
         dump(total, fp, indent=4, ensure_ascii=False)
 
 
-# 世界Boss活动全部收取
-def jewel_plus_all():
-    log = logger('jewel-')
-    try:
-        for account in total["accounts"]:
-            print('已登录账号'+str(account))
-            App = BaseApi(account['vid'], account['uid'], total['access_key'])
-            App.load_index()
-            App.kaiser_battle()
-            App.mission_plus()
-            App.season_ticket()
-            # App.season_ticket_reward()
-    except Exception as e:
-        log.exception(e)
-
-
 # 免费十连批量选择附奖
 def prize_gacha():
     log = logger('farm-')
     try:
-        for account in total["accounts"]:
-            print('已登录账号'+str(account['vid']))
-            App = BaseApi(account['vid'], account['uid'], total['access_key'])
-            App.load_index()
-            App.gacha_select()
-    except Exception as e:
-        log.exception(e)
-
-
-# 农场新手活动全解锁
-def farm_mission_all():
-    log = logger('friend-')
-    try:
-        clan_ids = []
-        for clan in total['clan']:
-            clan_ids.append(clan['clan_id'])
-        for clan_id in clan_ids:
-            for friend_account in friend["accounts"]:
-                App = FriendApi(friend_account['vid'], friend_account['uid'], total['access_key'])
-                App.friend_remove_all()
-                for account in total["accounts"]:
-                    if account['clan_id'] == clan_id:
-                        App.friend_request(account['uid'])
-            for account in total["accounts"]:
-                if account['clan_id'] == clan_id:
-                    App = FriendApi(account['vid'], account['uid'], total['access_key'])
-                    for i, friend_account in enumerate(friend["accounts"]):
-                        App.friend_accept(friend_account['vid'])
-                        friend["accounts"][i]['total_friend'] += 1
-                    for friend_account in friend["accounts"]:
-                        App.friend_remove(friend_account['vid'])
-                    print('已登录账号'+str(App.viewer_id))
-                    App.freshman_mission()
-        save_friend()
-    except Exception as e:
-        log.exception(e)
-
-
-# 按vid完成新手活动
-def user_mission(vid):
-    log = logger('friend-')
-    try:
-        for i, friend_account in enumerate(friend["accounts"]):
-            App = FriendApi(friend_account['vid'], friend_account['uid'], total['access_key'])
-            # if i > 0:
-            #     App.rename()
-            App.friend_remove_all()
-            App.friend_request(vid)
-            friend["accounts"][i]['total_friend'] += 1
-        save_friend()
+        all_account(BaseApi.gacha_select)
     except Exception as e:
         log.exception(e)
 
