@@ -10,6 +10,7 @@ from os.path import exists
 from api.satrokiapi import WebClient
 import time
 
+
 if exists('account.json'):
     with open('account.json', encoding='utf-8') as fp:
         total = load(fp)
@@ -114,50 +115,6 @@ def user_mission(vid):
     except Exception as e:
         log.exception(e)
 
-
-def farm_back():
-    """会战结束手动捐一次"""
-    start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    account_finish = {}
-    farm_list = total["accounts"]
-    # first routine
-    for i, account in enumerate(farm_list):
-        for j, clan in enumerate(bind['clan']):
-            if clan['clan_id'] == account['clan_id'] and clan['donate_user']:
-                try:
-                    App = BaseApi(account["vid"], account["uid"], total['access_key'])
-                    App.load_index()
-                    dun = App.dungeon(clan['donate_user'])
-                    if dun:
-                        bind['clan'][j]['donate_times'] += 1
-                        account_finish[i] = 1
-                except Exception:
-                    continue
-    finish_count = sum(account_finish.values())
-    fail_account = []
-    # second routine
-    for i, account in enumerate(farm_list):
-        for j, clan in enumerate(bind['clan']):
-            if clan['clan_id'] == account['clan_id'] and clan['donate_user']:
-                if i not in account_finish.keys():
-                    try:
-                        App = BaseApi(account["vid"], account["uid"], total['access_key'])
-                        App.load_index()
-                        dun = App.dungeon(clan['donate_user'])
-                        if dun:
-                            bind['clan'][j]['donate_times'] += 1
-                            account_finish[i] = 1
-                        else:
-                            fail_account.append(account["vid"])
-                    except Exception:
-                        fail_account.append(account["vid"])
-    finish_count_plus = sum(account_finish.values())
-    end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    save_bind()
-    with open('./log/total.txt', 'a', encoding='utf-8') as f:
-        f.write('本次手动捐赠共成功处理'+str(finish_count)+'个账号, 后续补充处理'+str(finish_count_plus - finish_count)+'个账号, 开始时间为'+start_time+', 结束时间为'+end_time+'\n')
-        if fail_account:
-            f.write('未成功处理账号共'+str(len(fail_account))+'个')
 
 
 # 检查农场号所在工会

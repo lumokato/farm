@@ -5,18 +5,18 @@ import time
 class ZhuangbeiApi(BaseApi):
 
     # 单次捐赠装备
-    def donate(self, clan_id: int, message_id: int, current_equip_num: int, donation_num: int):
-        temp = self.client.callapi('equipment/donate', {'clan_id': clan_id, 'message_id': message_id,
+    async def donate(self, clan_id: int, message_id: int, current_equip_num: int, donation_num: int):
+        temp = await self.client.callapi('equipment/donate', {'clan_id': clan_id, 'message_id': message_id,
                                                         'donation_num': donation_num, 'current_equip_num': current_equip_num})
         if 'donation_num' not in temp:
             self.client.login(self.uid, self.access_key)
-            temp = self.client.callapi('equipment/donate', {'clan_id': clan_id, 'message_id': message_id,
+            temp = await self.client.callapi('equipment/donate', {'clan_id': clan_id, 'message_id': message_id,
                                                             'donation_num': donation_num, 'current_equip_num': current_equip_num})
         return temp
 
-    # 会长号判断是否需要捐赠
-    def donate_check(self, bind):
-        temp = self.chat_monitor()
+    # 判断是否需要捐赠
+    async def donate_check(self, bind):
+        temp = await self.query(self.chat_monitor)
         message_time = {}
         # 记录所有chat创建时间
         if temp['clan_chat_message']:
@@ -32,8 +32,8 @@ class ZhuangbeiApi(BaseApi):
         return donate_list
 
     # 账号捐赠流程
-    def donate_message(self, message_id):
-        temp = self.chat_monitor()
+    async def donate_message(self, message_id):
+        temp = await self.query(self.chat_monitor)
         donate_continue = 0
         message_time = {}
         self.equip_stock = {}
@@ -65,14 +65,12 @@ class ZhuangbeiApi(BaseApi):
                         return donate_continue, self.donation_num
                     if equip_id in self.equip_stock.keys():
                         if self.equip_stock[equip_id] >= 2 and msg_donate_num < 2:
-                            temp1 = self.donate(
-                                self.clan_id, message_id, self.equip_stock[equip_id], 2 - msg_donate_num)
+                            temp1 = await self.donate(self.clan_id, message_id, self.equip_stock[equip_id], 2 - msg_donate_num)
                             if 'donation_num' not in temp1:
                                 return donate_continue, self.donation_num
                             self.donation_num = int(temp1['donation_num'])
                             self.equip_stock['equip_id'] = temp1['donate_equip']['stock']
-                            # print(str(self.viewer_id)+'已捐献'+str(self.donation_num) +
-                            #       '个,时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+                            # print(str(self.viewer_id)+'已捐献'+str(self.donation_num) + '个,时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
                             # 如果每次只捐一个账号，在此处取消注释
                             return donate_continue, self.donation_num
         return donate_continue, self.donation_num

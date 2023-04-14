@@ -11,10 +11,12 @@ from re import search
 import time
 from json import loads
 from os.path import dirname, join, exists
+import aiohttp
+
 
 curpath = dirname(__file__)
 config = join(curpath, 'version.txt')
-version = "4.9.4"
+version = "6.2.0"
 if exists(config):
     with open(config, encoding='utf-8') as fp:
         version = fp.read().strip()
@@ -110,51 +112,58 @@ class PCRClient:
             "Accept-Encoding": "gzip, deflate",
             "Connection": "close"}
         self.conn = requests.session()
+        self.shouldLogin = True
 
-    def callapi(self, apiurl, request, crypted=True):
+    async def callapi(self, apiurl, request, crypted=True):
         key = createkey()
-        if crypted:
-            request['viewer_id'] = encrypt(str(self.viewer_id), key).decode()
-        else:
-            request['viewer_id'] = str(self.viewer_id)
-        req = pack(request, key)
-        flag = self.request_id is not None and self.request_id != ''
-        flag2 = self.session_id is not None and self.session_id != ''
-        headers = self.default_headers
-        if flag:
-            headers["REQUEST-ID"] = self.request_id
-        if flag2:
-            headers["SID"] = self.session_id
-        resp = self.conn.post(url=self.urlroot + apiurl, headers=headers, data=req)
-        if crypted:
-            ret = decrypt(resp.content)
-        else:
-            ret = loads(resp.content.decode())
-        ret_header = ret["data_headers"]
-        if "check/game_start" == apiurl and "store_url" in ret_header:
-            global version
-            if ret_header["store_url"].split('_')[1][:-4] != version:
-                version = ret_header["store_url"].split('_')[1][:-4]
-                self.default_headers['APP-VER'] = version
-                with open(config, "w", encoding='utf-8') as fp:
-                    print(version, file=fp)
-        if "sid" in ret_header:
-            if ret_header["sid"] is not None and ret_header["sid"] != "":
-                self.session_id = hashlib.md5((ret_header["sid"] + "c!SID!n").encode()).hexdigest()
-        if "request_id" in ret_header:
-            if ret_header["request_id"] is not None and ret_header["request_id"] != "" and ret_header["request_id"] != self.request_id:
-                self.request_id = ret_header["request_id"]
-        if "viewer_id" in ret_header:
-            if ret_header["viewer_id"] is not None and ret_header["viewer_id"] != 0 and ret_header["viewer_id"] != self.viewer_id:
-                self.viewer_id = int(ret_header["viewer_id"])
-        answer = ret["data"]
-        if answer and 'servertime' in ret['data_headers']:
-            answer['servertime'] = ret['data_headers']['servertime']
-        return answer
+        try:
+            if crypted:
+                request['viewer_id'] = encrypt(str(self.viewer_id), key).decode()
+            else:
+                request['viewer_id'] = str(self.viewer_id)
+            req = pack(request, key)
+            flag = self.request_id is not None and self.request_id != ''
+            flag2 = self.session_id is not None and self.session_id != ''
+            headers = self.default_headers
+            if flag:
+                headers["REQUEST-ID"] = self.request_id
+            if flag2:
+                headers["SID"] = self.session_id
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=600)) as session:
+                response = await session.post(self.urlroot + apiurl, data=req, headers=self.default_headers)
+                resp = await response.content.read()
+            if crypted:
+                ret = decrypt(resp)
+            else:
+                ret = loads(resp.decode())
+            ret_header = ret["data_headers"]
+            if "check/game_start" == apiurl and "store_url" in ret_header:
+                global version
+                if ret_header["store_url"].split('_')[1][:-4] != version:
+                    version = ret_header["store_url"].split('_')[1][:-4]
+                    self.default_headers['APP-VER'] = version
+                    with open(config, "w", encoding='utf-8') as fp:
+                        print(version, file=fp)
+            if "sid" in ret_header:
+                if ret_header["sid"] is not None and ret_header["sid"] != "":
+                    self.session_id = hashlib.md5((ret_header["sid"] + "c!SID!n").encode()).hexdigest()
+            if "request_id" in ret_header:
+                if ret_header["request_id"] is not None and ret_header["request_id"] != "" and ret_header["request_id"] != self.request_id:
+                    self.request_id = ret_header["request_id"]
+            if "viewer_id" in ret_header:
+                if ret_header["viewer_id"] is not None and ret_header["viewer_id"] != 0 and ret_header["viewer_id"] != self.viewer_id:
+                    self.viewer_id = int(ret_header["viewer_id"])
+            answer = ret["data"]
+            if answer and 'servertime' in ret['data_headers']:
+                answer['servertime'] = ret['data_headers']['servertime']
+            return answer
+        except Exception:
+            self.shouldLogin = True
+            raise
 
-    def login(self, uid, access_key):
+    async def login(self, uid, access_key):
         while True:
-            self.manifest = self.callapi('source_ini/get_maintenance_status', {}, False)
+            self.manifest = await self.callapi('source_ini/get_maintenance_status', {}, False)
             if 'maintenance_message' not in self.manifest:
                 break
             try:
@@ -168,17 +177,16 @@ class PCRClient:
                 time.sleep(60)
         ver = self.manifest["required_manifest_ver"]
         self.default_headers["MANIFEST-VER"] = ver
-        self.callapi('tool/sdk_login', {"uid": uid, "access_key": access_key, "platform": self.default_headers["PLATFORM-ID"], "channel_id": self.default_headers["CHANNEL-ID"]})
-        self.callapi('check/game_start', {"app_type": 0, "campaign_data": "", "campaign_user": random.randint(1, 1000000)})
-        self.callapi("check/check_agreement", {})
-        self.load = self.callapi("load/index", {"carrier": "google"})
-        self.home = self.callapi("home/index", {'message_id': random.randint(1, 5000), 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
-        if 'server_error' in self.home:
-            self.callapi('tool/sdk_login', {"uid": uid, "access_key": access_key, "platform": self.default_headers["PLATFORM-ID"], "channel_id": self.default_headers["CHANNEL-ID"]})
-            self.callapi('check/game_start', {"app_type": 0, "campaign_data": "", "campaign_user": random.randint(1, 1000000)})
-            self.callapi("check/check_agreement", {})
-            self.home = self.callapi("home/index", {'message_id': random.randint(1, 5000), 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
-        return self.load, self.home
+        for retry in range(4):
+            await self.callapi('tool/sdk_login', {"uid": uid, "access_key": access_key, "platform": self.default_headers["PLATFORM-ID"], "channel_id": self.default_headers["CHANNEL-ID"]})
+            await self.callapi('check/game_start', {"app_type": 0, "campaign_data": "", "campaign_user": random.randint(1, 1000000)})
+            await self.callapi("check/check_agreement", {})
+            load = await self.callapi("load/index", {"carrier": "google"})
+            home = await self.callapi("home/index", {'message_id': random.randint(1, 5000), 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
+            if 'server_error' not in home:
+                break
+        self.shouldLogin = False
+        return load, home
 
 
 class ApiException(Exception):

@@ -1,21 +1,22 @@
 from .baseapi import BaseApi
 import random
 import time
+import asyncio
 
 
 class SceneApi(BaseApi):
     # 解锁主线章节
-    def release_all(self, chapter: int):
-        temp = self.client.callapi('/story/force_release', {'story_group_id': chapter + 2000})
+    async def release_all(self, chapter: int):
+        temp = await self.client.callapi('/story/force_release', {'story_group_id': chapter + 2000})
         if 'server_error' not in temp:
             print('    已解锁主线章节' + str(chapter))
 
     # 按id读取剧情
-    def storycheck(self, storyid: int):
+    async def storycheck(self, storyid: int):
         try:
-            res = self.client.callapi('/story/check', {'story_id': storyid})
-            time.sleep(random.randint(3, 9))
-            res = self.client.callapi('/story/start', {'story_id': storyid})
+            res = await self.client.callapi('/story/check', {'story_id': storyid})
+            await asyncio.sleep(random.randint(3, 9))
+            res = await self.client.callapi('/story/start', {'story_id': storyid})
             if 'server_error' in res:
                 return False
             if 'reward_info' in res:
@@ -25,8 +26,8 @@ class SceneApi(BaseApi):
             return False
 
     # 读取主线剧情
-    def scene_zhuxian(self):
-        self.load_index()
+    async def scene_zhuxian(self):
+        await self.load_index(requery=True)
         print('已登录账号' + str(self.viewer_id) + ",账号等级为" + str(self.team_level) + ',现有体力为' +
               str(self.user_stamina) + ',免费钻量' + str(self.user_jewel))
         reads = self.read_story_ids
@@ -58,10 +59,10 @@ class SceneApi(BaseApi):
         }
         for i in scene_zhuxian.keys():
             if i > chapter_read - 1:
-                self.release_all(i)
+                await self.release_all(i)
             for j in scene_zhuxian[i]:
                 zhuxian_id = 2000000 + i * 1000 + j
                 if zhuxian_id not in reads:
-                    if not self.storycheck(zhuxian_id):
+                    if not await self.storycheck(zhuxian_id):
                         break
         return True
