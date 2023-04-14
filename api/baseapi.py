@@ -17,7 +17,7 @@ def all_account(func):
         async with sem:
             client = BaseApi(account['vid'], account['uid'], total_api['access_key'])
             await client.query(client.load_index)
-            await func_single
+            await func_single(client)
 
     async def all_main():
         task_list = []
@@ -407,8 +407,7 @@ class BaseApi:
 
     # 复刻池选取碎片（临时）
     async def gacha_select(self):
-        temp = await self.client.callapi(
-            'gacha/select_prize', {'prizegacha_id': 100024, 'item_id': 31097})
+        temp = await self.client.callapi('gacha/select_prize', {'prizegacha_id': 100024, 'item_id': 31097})
         return temp
 
     # 抽取当期up

@@ -45,86 +45,95 @@ def save_total():
 
 # 免费十连批量选择附奖
 def prize_gacha():
-    log = logger('farm-')
+    # log = logger('farm-')
     try:
         all_account(BaseApi.gacha_select)
     except Exception as e:
-        log.exception(e)
-
+        print(e)
+        # log.exception(e)
 
 
 # 检查农场号所在工会
 def check_clan_all():
-    equip_account = {}
-    farm_account = {}
-    for clan in total["clan"]:
-        equip_account[clan["clan_id"]] = []
-        farm_account[clan["clan_id"]] = []
-    for account in total["accounts"]:
-        if account["equip"]:
-            equip_account[account["clan_id"]].append(account["vid"])
-        elif account["clan_id"]:
-            farm_account[account["clan_id"]].append(account["vid"])
-    # 检查clanid错误
-    App = GonghuiApi(total["accounts"][0]["vid"], total["accounts"][0]["uid"], total['access_key'])
-    for clan in equip_account:
-        members = App.client.callapi('clan/others_info', {'clan_id': clan})['clan']['members']
-        mem_query = []
-        for mem in members:
-            mem_query.append(mem['viewer_id'])
-        for member in equip_account[clan]:
-            if member not in mem_query:
-                print(member, clan)
-        for member in farm_account[clan]:
-            if member not in mem_query:
-                print(member, clan)
-    # 打印信息
-    with open('./log/check.txt', 'a', encoding='utf-8') as f:
-        for clan in equip_account.keys():
-            f.write('工会'+str(clan)+'装备号'+str(len(equip_account[clan]))+'个, 包含'+str(equip_account[clan])+'\n')
-        for clan in farm_account.keys():
-            f.write('工会'+str(clan)+'农场号'+str(len(farm_account[clan]))+'个, 包含'+str(farm_account[clan])+'\n')
+    async def check_farm():
+        equip_account = {}
+        farm_account = {}
+        for clan in total["clan"]:
+            equip_account[clan["clan_id"]] = []
+            farm_account[clan["clan_id"]] = []
+        for account in total["accounts"]:
+            if account["equip"]:
+                equip_account[account["clan_id"]].append(account["vid"])
+            elif account["clan_id"]:
+                farm_account[account["clan_id"]].append(account["vid"])
+        # 检查clanid错误
+        client = BaseApi(total["accounts"][0]["vid"], total["accounts"][0]["uid"], total['access_key'])
+        await client.query(client.load_index)
+        for clan in equip_account:
+            members = await client.client.callapi('clan/others_info', {'clan_id': clan})
+            mem_query = []
+            for mem in members['clan']['members']:
+                mem_query.append(mem['viewer_id'])
+            for member in equip_account[clan]:
+                if member not in mem_query:
+                    print(member, clan)
+            for member in farm_account[clan]:
+                if member not in mem_query:
+                    print(member, clan)
+        # 打印信息
+        with open('./log/check.txt', 'a', encoding='utf-8') as f:
+            for clan in equip_account.keys():
+                f.write('工会'+str(clan)+'装备号'+str(len(equip_account[clan]))+'个, 包含'+str(equip_account[clan])+'\n')
+            for clan in farm_account.keys():
+                f.write('工会'+str(clan)+'农场号'+str(len(farm_account[clan]))+'个, 包含'+str(farm_account[clan])+'\n')
+
+    async def check_main():
+        task_list = []
+        task = asyncio.create_task(check_farm())
+        task_list.append(task)
+        await asyncio.gather(*task_list)
+    asyncio.run(check_main())
 
 
 # 检查装备号
-def check_equip():
-    equip_a = {0: []}
-    equip_b = {0: []}
-    for clan in total["clan"]:
-        equip_a[clan["clan_id"]] = []
-        equip_b[clan["clan_id"]] = []
-    equip_account = {}
-    for clan in total["clan"]:
-        equip_account[clan["clan_id"]] = []
-    for account in total["accounts"]:
-        if account["equip"]:
-            equip_account[account["clan_id"]].append(account["vid"])
-    App = GonghuiApi(total["accounts"][0]["vid"], total["accounts"][0]["uid"], total['access_key'])
-    for account in total["accounts"]:
-        res = App.client.callapi('profile/get_profile', {'target_viewer_id': int(account["vid"])})
-        if sum(res['quest_info']['normal_quest']) > 270:
-            equip_a[account["clan_id"]].append(account["vid"])
-            if account["clan_id"] and account["vid"] not in equip_account[account["clan_id"]]:
-                print(account["vid"])
-        elif sum(res['quest_info']['normal_quest']) > 190:
-            equip_b[account["clan_id"]].append(account["vid"])
-    # for clan in equip_account:
-    #     members = App.client.callapi('clan/others_info', {'clan_id': clan})['clan']['members']
-    #     mem_query = []
-    #     for mem in members:
-    #         mem_query.append(mem['viewer_id'])
-    #     for member in equip_account[clan]:
-    #         if member not in mem_query:
-    #             print(member, clan)
-    #     for member in farm_account[clan]:
-    #         if member not in mem_query:
-    #             print(member, clan)
-    # 打印信息
-    with open('./log/check.txt', 'a', encoding='utf-8') as f:
-        for clan in equip_a.keys():
-            f.write('工会'+str(clan)+'可用装备号'+str(len(equip_a[clan]))+'个, 包含'+str(equip_a[clan])+'\n')
-        for clan in equip_b.keys():
-            f.write('工会'+str(clan)+'备用装备号'+str(len(equip_b[clan]))+'个, 包含'+str(equip_b[clan])+'\n')
+def check_equip_all():
+    async def check_equip():
+        equip_a = {0: []}
+        equip_b = {0: []}
+        for clan in total["clan"]:
+            equip_a[clan["clan_id"]] = []
+            equip_b[clan["clan_id"]] = []
+        equip_account = {}
+        for clan in total["clan"]:
+            equip_account[clan["clan_id"]] = []
+        for account in total["accounts"]:
+            if account["equip"]:
+                equip_account[account["clan_id"]].append(account["vid"])
+
+        client = GonghuiApi(total["accounts"][0]["vid"], total["accounts"][0]["uid"], total['access_key'])
+        await client.query(client.load_index)
+        for account in total["accounts"]:
+            res = await client.client.callapi('profile/get_profile', {'target_viewer_id': int(account["vid"])})
+            if sum(res['quest_info']['normal_quest']) > 270:
+                equip_a[account["clan_id"]].append(account["vid"])
+                if account["clan_id"] and account["vid"] not in equip_account[account["clan_id"]]:
+                    print(account["vid"])
+            elif sum(res['quest_info']['normal_quest']) > 190:
+                equip_b[account["clan_id"]].append(account["vid"])
+
+        # 打印信息
+        with open('./log/check.txt', 'a', encoding='utf-8') as f:
+            for clan in equip_a.keys():
+                f.write('工会'+str(clan)+'可用装备号'+str(len(equip_a[clan]))+'个, 包含'+str(equip_a[clan])+'\n')
+            for clan in equip_b.keys():
+                f.write('工会'+str(clan)+'备用装备号'+str(len(equip_b[clan]))+'个, 包含'+str(equip_b[clan])+'\n')
+
+    async def check_main():
+        task_list = []
+        task = asyncio.create_task(check_equip())
+        task_list.append(task)
+        await asyncio.gather(*task_list)
+    asyncio.run(check_main())
 
 
 # 批量修改equip状态
@@ -139,70 +148,46 @@ def change_equip(equip_list):
 
 # 移动人员
 def move_member(mem_list, move_clan):
-    message = ''
-    move_seq = {}
-    clan_remove = {}
-    for i, account in enumerate(total["accounts"]):
-        if account['vid'] in mem_list:
-            move_seq[account['vid']] = i
-            if account['clan_id'] not in clan_remove.keys():
-                clan_remove[account['clan_id']] = [account['vid']]
-            else:
-                clan_remove[account['clan_id']].append(account['vid'])
+    async def move_clan():
+        message = ''
+        move_seq = {}
+        clan_remove = {}
+        for i, account in enumerate(total["accounts"]):
+            if account['vid'] in mem_list:
+                move_seq[account['vid']] = i
+                if account['clan_id'] not in clan_remove.keys():
+                    clan_remove[account['clan_id']] = [account['vid']]
+                else:
+                    clan_remove[account['clan_id']].append(account['vid'])
+        for clan in total['clan']:
+            if clan['clan_id'] in clan_remove.keys() and clan['clan_id']:
+                client = GonghuiApi(clan['owner'])
+                await client.query(client.load_index)
+                mem_clan = clan_remove[clan['clan_id']]
+                for mem in mem_clan:
+                    msg = await client.remove_members(mem)
+                    if msg:
+                        total["accounts"][move_seq[mem]]["clan_id"] = 0
+                        message += msg
+        for move_mem in mem_list:
+            client_mem = GonghuiApi(move_mem)
+            await client_mem.query(client.load_index)
+            msg = await client_mem.join_clan(move_clan)
+            if msg:
+                total["accounts"][move_seq[move_mem]]["clan_id"] = move_clan
+                message += msg
 
-    for clan in total['clan']:
-        if clan['clan_id'] in clan_remove.keys() and clan['clan_id']:
-            App = GonghuiApi(clan['owner'])
-            mem_clan = clan_remove[clan['clan_id']]
-            for mem in mem_clan:
-                msg = App.remove_members(mem)
-                if msg:
-                    total["accounts"][move_seq[mem]]["clan_id"] = 0
-                    message += msg
-    for move_mem in mem_list:
-        App = GonghuiApi(move_mem)
-        msg = App.join_clan(move_clan)
-        if msg:
-            total["accounts"][move_seq[move_mem]]["clan_id"] = move_clan
-            message += msg
-    save_total()
-    print(message)
-    with open('./log/total.txt', 'a', encoding='utf-8') as f:
-        f.write(message)
+        save_total()
+        print(message)
+        with open('./log/total.txt', 'a', encoding='utf-8') as f:
+            f.write(message)
 
-
-# 检查所有账号场次
-def check_group():
-    App = GonghuiApi(total["accounts"][0]['vid'])
-    arena_dict = {}
-    grand_dict = {}
-    for account in total["accounts"]:
-        res = App.client.callapi('profile/get_profile', {'target_viewer_id': int(account['vid'])})
-        arena = res['user_info']['arena_group']
-        grand = res['user_info']['grand_arena_group']
-        if arena not in arena_dict.keys():
-            arena_dict[arena] = [account['vid']]
-        else:
-            arena_dict[arena].append(account['vid'])
-        if grand not in grand_dict.keys():
-            grand_dict[grand] = [account['vid']]
-        else:
-            grand_dict[grand].append(account['vid'])
-    with open('group.json', 'w', encoding='utf-8') as fp:
-        dump(arena, fp, indent=4, ensure_ascii=False)
-    with open('group.json', 'a', encoding='utf-8') as fp:
-        dump(grand, fp, indent=4, ensure_ascii=False)
-    grand_account = {}
-    for grand in grand_dict.keys():
-        if grand > 0:
-            for account in total["accounts"]:
-                if account['vid'] == grand_dict[grand][0]:
-                    grand_account[grand] = {
-                        "viewer_id": account['vid'],
-                        "uid": account['uid']
-                        }
-    with open('grand_account.json', 'w', encoding='utf-8') as fp:
-        dump(grand_account, fp, indent=4, ensure_ascii=False)
+    async def move_main():
+        task_list = []
+        task = asyncio.create_task(move_clan())
+        task_list.append(task)
+        await asyncio.gather(*task_list)
+    asyncio.run(move_main())
 
 
 def change_unit_name():
