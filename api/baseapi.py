@@ -66,7 +66,7 @@ class BaseApi:
     # 账号基本信息
     async def load_index(self, requery=False):
         if requery:
-            self.load = await self.callapi("load/index", {"carrier": "google"})
+            self.load = await self.client.callapi("load/index", {"carrier": "google"})
         self.tower_coin = self.arena_coin = self.grand_arena_coin = self.clan_battle_coin = 0  # 初始化
         self.user_stamina = self.load['user_info']['user_stamina']
         self.viewer_id = self.load['user_info']['viewer_id']
@@ -153,13 +153,13 @@ class BaseApi:
         wait_accept = 0
         for mission in temp['missions']:
             if mission is not None:
-                if mission['mission_status'] == 1:
+                if mission['mission_status'] == 1 and mission['mission_id'] < 20000000:
                     wait_accept = 1
                     break
         if wait_accept:
             temp1 = await self.client.callapi('mission/accept', {'type': 1, 'id': 0, 'buy_id': 0})
-            # if 'rewards' not in temp1:
-            #     return False
+            if 'rewards' not in temp1:
+                return False
             await asyncio.sleep(2)
         return True
 

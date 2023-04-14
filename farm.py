@@ -155,6 +155,7 @@ def do_farm_cron():
 
     # second routine
     second_list = []
+    print(second_list)
     for i in farm_index:
         if i not in account_finish.keys():
             second_list.append(i)
@@ -166,10 +167,10 @@ def do_farm_cron():
     fail_account = []
     for j in farm_index:
         if j not in account_finish.keys():
-            fail_account.append(total["accounts"]["vid"])
+            fail_account.append(total["accounts"][j]["vid"])
 
     with open('./log/total.txt', 'a', encoding='utf-8') as f:
-        f.write('本次共成功处理'+str(first_count)+'个账号, 后续补充处理'+str(first_count - second_count)+'个账号, 开始时间为'+start_time+', 结束时间为'+end_time+'\n')
+        f.write('本次共成功处理'+str(second_count)+'个账号, 后续补充处理'+str(second_count - first_count)+'个账号, 开始时间为'+start_time+', 结束时间为'+end_time+'\n')
         if fail_account:
             f.write('未成功处理账号为'+str(fail_account))
 

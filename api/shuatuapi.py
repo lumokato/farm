@@ -225,7 +225,7 @@ class ShuatuApi(BaseApi):
     # 按账号解锁状态刷N图
     async def shuatu_N(self, n_event):
         if n_event == 3:
-            buy_stamina = 7
+            buy_stamina = 6
         else:
             buy_stamina = 0
         quest_n = []
