@@ -101,7 +101,7 @@ class BaseApi:
         if 'cf' in self.load:
             self.fortune_id = self.load['cf']['fortune_id']
             self.fortune_unit_list = self.load['cf']['unit_list']
-            self.chara_fortune()
+            await self.chara_fortune()
         self.unit_list = []
         for unit in self.load['unit_list']:
             self.unit_list.append(unit['id'])
@@ -293,8 +293,7 @@ class BaseApi:
     # 赛马
     async def chara_fortune(self):
         unit_id = self.fortune_unit_list[0]
-        temp = await self.client.callapi(
-            'chara_fortune/draw', {'fortune_id': self.fortune_id, 'unit_id': unit_id})
+        temp = await self.client.callapi('chara_fortune/draw', {'fortune_id': self.fortune_id, 'unit_id': unit_id})
         if 'reward_list' not in temp:
             return False
         print('赛马获得' + str(temp['reward_list'][0]['received']) + '钻')
