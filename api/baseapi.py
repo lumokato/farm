@@ -229,7 +229,79 @@ class BaseApi:
         await asyncio.sleep(2)
         if self.compaign_gacha_time:
             await self.gacha_compaign(campaign_gacha_id, exchange_id)
+        if 'ticket_gacha_info' in temp['gacha_info']:
+            await self.gacha_ticket()
         return True
+
+    # 抽取免费十连
+    async def gacha_compaign(self, gacha_id, exchange_id):
+        temp = await self.client.callapi('gacha/exec', {'gacha_id': gacha_id, 'gacha_times': 10,
+                                                        'exchange_id': exchange_id, 'draw_type': 6,
+                                                        'current_cost_num': 1, 'campaign_id': self.campaign_id})
+        if 'reward_info_list' in temp:
+            chara_list = ''
+            for chara in temp['reward_info_list']:
+                if chara['id'] == 90005:
+                    chara_id = int(chara['exchange_data']['unit_id'])
+                else:
+                    chara_id = int(chara['id'])
+                if chara['id'] != 90005 or chara['exchange_data']['rarity'] == '3':
+                    chara_list += self.unit_id_dict[str(chara_id)] + '(3)，'
+                else:
+                    chara_list += self.unit_id_dict[str(chara_id)] + '，'
+            print('  免费十连扭蛋结果为：' + str(chara_list) + '时间为' +
+                  time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(temp['servertime'])) + '。')
+        if 'prize_reward_info' in temp:
+            prize_list = ''
+            for prize in temp['prize_reward_info'].values():
+                prize_list += str(prize['rarity']) + '，'
+            print('  附奖等级为：' + str(prize_list))
+        return True
+
+    # 复刻池选取碎片（临时）
+    async def gacha_select(self):
+        temp = await self.client.callapi('gacha/select_prize', {'prizegacha_id': 100024, 'item_id': 31097})
+        return temp
+
+    # 抽取当期up
+    async def gacha_up(self, gacha_total, gacha_id, exchange_id):
+        check_up = -1
+        temp = await self.client.callapi('gacha/exec', {'gacha_id': gacha_id, 'gacha_times': 10,
+                                                        'exchange_id': exchange_id, 'draw_type': 2,
+                                                        'current_cost_num': self.user_jewel + self.paid_jewel})
+        if 'reward_info_list' in temp:
+            self.user_jewel -= 1500
+            chara_list = ''
+            for chara in temp['reward_info_list']:
+                if chara['id'] == 90005:
+                    chara_id = int(chara['exchange_data']['unit_id'])
+                else:
+                    chara_id = chara['id']
+                    if chara_id == 107001:
+                        print('已抽到当期up')
+                        check_up = 1
+                chara_list += self.unit_id_dict[str(chara_id)] + '，'
+        print('第' + str(gacha_total) + '次扭蛋结果为：' +
+              str(chara_list) + '剩余免费钻' + str(self.user_jewel))
+        return check_up
+
+    # 抽取纪念券
+    async def gacha_ticket(self):
+        temp = await self.client.callapi('gacha/exec', {'gacha_id': 80005, 'gacha_times': 1, 'exchange_id': 0,
+                                                        'draw_type': 9, 'current_cost_num': 1, 'campaign_id': 0})
+        if 'reward_info_list' in temp:
+            chara_list = ''
+            for chara in temp['reward_info_list']:
+                if chara['id'] == 90005:
+                    chara_id = int(chara['exchange_data']['unit_id'])
+                else:
+                    chara_id = int(chara['id'])
+                if chara['id'] != 90005:
+                    chara_list += self.unit_id_dict[str(chara_id)] + '(new)'
+                else:
+                    chara_list += self.unit_id_dict[str(chara_id)] + ''
+            print('纪念券扭蛋结果为：' + str(chara_list) + '时间为' +
+                  time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(temp['servertime'])) + '。')
 
     # 地下城
     async def dungeon(self, donate_id):
@@ -378,58 +450,6 @@ class BaseApi:
                 print("  购买真琴碎片" +
                       str(buy_data['purchase_list'][0]['received']) + '片')
         return True
-
-    # 抽取免费十连
-    async def gacha_compaign(self, gacha_id, exchange_id):
-        temp = await self.client.callapi('gacha/exec', {'gacha_id': gacha_id, 'gacha_times': 10,
-                                                        'exchange_id': exchange_id, 'draw_type': 6,
-                                                        'current_cost_num': 1, 'campaign_id': self.campaign_id})
-        if 'reward_info_list' in temp:
-            chara_list = ''
-            for chara in temp['reward_info_list']:
-                if chara['id'] == 90005:
-                    chara_id = int(chara['exchange_data']['unit_id'])
-                else:
-                    chara_id = int(chara['id'])
-                if chara['id'] != 90005 or chara['exchange_data']['rarity'] == '3':
-                    chara_list += self.unit_id_dict[str(chara_id)] + '(3)，'
-                else:
-                    chara_list += self.unit_id_dict[str(chara_id)] + '，'
-            print('  免费十连扭蛋结果为：' + str(chara_list) + '时间为' +
-                  time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(temp['servertime'])) + '。')
-        if 'prize_reward_info' in temp:
-            prize_list = ''
-            for prize in temp['prize_reward_info'].values():
-                prize_list += str(prize['rarity']) + '，'
-            print('  附奖等级为：' + str(prize_list))
-        return True
-
-    # 复刻池选取碎片（临时）
-    async def gacha_select(self):
-        temp = await self.client.callapi('gacha/select_prize', {'prizegacha_id': 100024, 'item_id': 31097})
-        return temp
-
-    # 抽取当期up
-    async def gacha_up(self, gacha_total, gacha_id, exchange_id):
-        check_up = -1
-        temp = await self.client.callapi('gacha/exec', {'gacha_id': gacha_id, 'gacha_times': 10,
-                                                        'exchange_id': exchange_id, 'draw_type': 2,
-                                                        'current_cost_num': self.user_jewel + self.paid_jewel})
-        if 'reward_info_list' in temp:
-            self.user_jewel -= 1500
-            chara_list = ''
-            for chara in temp['reward_info_list']:
-                if chara['id'] == 90005:
-                    chara_id = int(chara['exchange_data']['unit_id'])
-                else:
-                    chara_id = chara['id']
-                    if chara_id == 107001:
-                        print('已抽到当期up')
-                        check_up = 1
-                chara_list += self.unit_id_dict[str(chara_id)] + '，'
-        print('第' + str(gacha_total) + '次扭蛋结果为：' +
-              str(chara_list) + '剩余免费钻' + str(self.user_jewel))
-        return check_up
 
     # 查box
     async def check_box(self, chara_id):

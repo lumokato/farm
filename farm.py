@@ -11,7 +11,6 @@ from os.path import exists
 import datetime
 from wechat import send_wechat
 import calendar
-import plus
 import asyncio
 
 
