@@ -364,7 +364,7 @@ class BaseApi:
 
     # 赛马
     async def chara_fortune(self):
-        unit_id = self.fortune_unit_list[0]
+        unit_id = self.fortune_unit_list[3]
         temp = await self.client.callapi('chara_fortune/draw', {'fortune_id': self.fortune_id, 'unit_id': unit_id})
         if 'reward_list' not in temp:
             return False
