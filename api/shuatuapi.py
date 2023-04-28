@@ -218,7 +218,7 @@ class ShuatuApi(BaseApi):
             if 12001001 <= tu_num < 12099001:
                 quest_h.append(tu_num)
         for tu in quest_h:
-            if not self.quest(tu, 3, 0):
+            if not await self.quest(tu, 3, 0):
                 return False
         return self.user_stamina > 20
 
