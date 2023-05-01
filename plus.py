@@ -147,7 +147,7 @@ def change_equip(equip_list):
 
 
 # 移动人员
-def move_member(mem_list, move_clan):
+def move_member(mem_list, clan_id):
     async def move_clan():
         message = ''
         move_seq = {}
@@ -171,10 +171,10 @@ def move_member(mem_list, move_clan):
                         message += msg
         for move_mem in mem_list:
             client_mem = GonghuiApi(move_mem)
-            await client_mem.query(client.load_index)
-            msg = await client_mem.join_clan(move_clan)
+            await client_mem.query(client_mem.load_index)
+            msg = await client_mem.join_clan(clan_id)
             if msg:
-                total["accounts"][move_seq[move_mem]]["clan_id"] = move_clan
+                total["accounts"][move_seq[move_mem]]["clan_id"] = clan_id
                 message += msg
 
         save_total()

@@ -34,7 +34,7 @@ class ZhuangbeiApi(BaseApi):
     # 账号捐赠流程
     async def donate_message(self, message_id):
         temp = await self.query(self.chat_monitor)
-        donate_continue = 0
+        donate_continue = 1
         message_time = {}
         self.equip_stock = {}
         if temp['clan_chat_message']:
@@ -48,7 +48,6 @@ class ZhuangbeiApi(BaseApi):
             for message in temp['equip_requests']:
                 # 按id选取指定的message
                 if message['message_id'] == message_id:
-                    donate_continue = 1
                     msg_donate_num = 0
                     # 检查是否已捐赠此message
                     if 'user_donation_num' in message:
@@ -57,6 +56,7 @@ class ZhuangbeiApi(BaseApi):
                     # 如果已捐赠完,返回0
                     if 'donation_num' in message:
                         if message['donation_num'] == 10:
+                            print('已捐赠10个')
                             return 0, self.donation_num
                     # 如果账号已捐赠超过8,切换账号
                     if int(self.donation_num) > 8:
@@ -70,7 +70,7 @@ class ZhuangbeiApi(BaseApi):
                                 return donate_continue, self.donation_num
                             self.donation_num = int(temp1['donation_num'])
                             self.equip_stock['equip_id'] = temp1['donate_equip']['stock']
-                            # print(str(self.viewer_id)+'已捐献'+str(self.donation_num) + '个,时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+                            print(str(self.viewer_id)+'已捐献'+str(self.donation_num) + '个,时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
                             # 如果每次只捐一个账号，在此处取消注释
                             return donate_continue, self.donation_num
-        return donate_continue, self.donation_num
+        # return donate_continue, self.donation_num
