@@ -223,14 +223,14 @@ class BaseApi:
         if 'campaign_info' in temp:
             self.campaign_id = temp['campaign_info']['campaign_id']
         if self.free_gacha_time:
-            temp = await self.client.callapi('gacha/exec', {'gacha_id': free_gacha_id, 'gacha_times': 10,
+            await self.client.callapi('gacha/exec', {'gacha_id': free_gacha_id, 'gacha_times': 10,
                                                             'exchange_id': 0, 'draw_type': 1, 'current_cost_num': -1,
                                                             'campaign_id': 0})
         await asyncio.sleep(2)
         if self.compaign_gacha_time:
             await self.gacha_compaign(campaign_gacha_id, exchange_id)
-        if 'ticket_gacha_info' in temp['gacha_info']:
-            await self.gacha_ticket()
+        # if 'ticket_gacha_info' in temp:
+        #     await self.gacha_ticket()
         return True
 
     # 抽取免费十连
