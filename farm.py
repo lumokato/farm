@@ -128,7 +128,7 @@ async def daily_matters(index, vid, sem):
 
 def change_n_event():
     now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    n_event = bilievent.load_event_cn(datetime.datetime.strptime(now_time, "%Y-%m-%d %H:%M:%S"))
+    n_event = bilievent.load_event_bilibili(datetime.datetime.strptime(now_time, "%Y-%m-%d %H:%M:%S"))
     total['N_event'] = n_event
     save_total()
 
