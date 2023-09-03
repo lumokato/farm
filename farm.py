@@ -55,7 +55,10 @@ async def equip_donate(clan, sem):
             for donate in donate_list:
                 for account in sorted(donate_account.items(), key=lambda x: x[1]):
                     client = ZhuangbeiApi(total["accounts"][account[0]]['vid'], total["accounts"][account[0]]['uid'], total['access_key'])
-                    donate_continue, donation_num = await client.donate_message(donate[1])
+                    msg = await client.donate_message(donate[1])
+                    if not msg:
+                        break
+                    donate_continue, donation_num = msg
                     total["accounts"][account[0]]['today_donate'] = donation_num
                     donate_account[account[0]] = donation_num
                     if not donate_continue:

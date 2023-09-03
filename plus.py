@@ -202,6 +202,15 @@ def change_unit_name():
     with open('unit_id_new.json', 'w', encoding='utf-8') as fp:
         dump(unit, fp, indent=4, ensure_ascii=False)
 
+def check_equip_stock():
+    log = logger('equip')
+    try:
+        all_account(BaseApi.check_equip_num)
+    except Exception as e:
+        print(e)
+        log.exception(e)
+
+
 
 if __name__ == '__main__':
-    change_unit_name()
+    check_equip_stock()

@@ -529,3 +529,8 @@ class BaseApi:
             if 'received_rewards' in temp:
                 print('    已收取女神祭等级' + str(temp['received_rewards']))
         return True
+
+    async def check_equip_num(self):
+        for equip in self.load['user_equip']:
+            if equip['id'] == 115192:
+                print(str(self.viewer_id)+'碎片数'+str(equip['stock']))

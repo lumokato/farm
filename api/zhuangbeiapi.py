@@ -72,5 +72,7 @@ class ZhuangbeiApi(BaseApi):
                             self.equip_stock['equip_id'] = temp1['donate_equip']['stock']
                             print(str(self.viewer_id)+'已捐献'+str(self.donation_num) + '个,时间为'+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
                             # 如果每次只捐一个账号，在此处取消注释
-                            return donate_continue, self.donation_num
+                        elif self.equip_stock[equip_id] < 2:
+                            print(str(self.viewer_id)+'库存装备'+str(equip_id)+'不足')
+                        return donate_continue, self.donation_num
         # return donate_continue, self.donation_num
