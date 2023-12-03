@@ -9,6 +9,9 @@ with open('account.json', encoding='utf-8') as fp:
 with open('unit_id.json', encoding='utf-8') as fp:
     unit_id_dict = load(fp)
 
+with open('equip_id.json', encoding="utf-8") as fp:
+    equip2name = load(fp)
+
 lck = asyncio.Lock()
 
 
@@ -739,12 +742,7 @@ class BaseApi:
 
         return event_id_list, msg if return_close_msg else []
 
-    async def buy_exp(self, buy_cnt=1):
-        try:
-            mana = await query.get_mana(account_info)
-        except Exception as e:
-            return f'Fail. 获取MANA数量失败：{e}'
-
+    async def buy_exp(self):
         exp_id2name = {
             20001: "迷你经验药剂",
             20002: "经验药剂",
@@ -753,25 +751,7 @@ class BaseApi:
         }
 
         try:
-            exp_cnt = {exp_id: await query.get_item_stock(account_info, exp_id) for exp_id in exp_id2name}
-        except Exception as e:
-            return f'Fail. 获取经验瓶数量失败：{e}'
-
-        exp_cnt_outp = " ".join([f'{exp_name}={exp_cnt[exp_id]}' for exp_id, exp_name in exp_id2name.items()])
-
-        threshold = 9999999
-        if mana < 10000000:
-            threshold = 0
-        elif mana < 100000000:
-            threshold = 3000
-        elif mana < 300000000:
-            threshold = 5000
-
-        if max(exp_cnt.values()) > threshold:
-            return f'Abort. 当前拥有Mana{mana // 10000}w，设定经验瓶阈值为{threshold}。当前拥有经验瓶数量({exp_cnt_outp})超过阈值。已自动关闭该功能。'
-
-        try:
-            data = await query.query(account_info, "/shop/item_list")
+            data = await self.client.callapi("/shop/item_list")
             shop_list = data["shop_list"]
             mana_shop = list(filter(lambda x: x["system_id"] == 201, shop_list))[0]
             mana_shop = mana_shop["item_list"]  # list
@@ -784,28 +764,44 @@ class BaseApi:
         if slot == []:
             return f'Skip. 已购买通常商店所有经验瓶，请等待下次刷新。'
         try:
-            ret = await query.query(
-                account_info, "/shop/buy_multiple", {
+            ret = await self.client.callapi("/shop/buy_multiple", {
                     "system_id": 201,
                     "slot_ids": slot,
-                    "current_currency_num": mana
+                    "current_currency_num": self.gold
                 })
         except Exception as e:
-            return f'Fail. 商店购买经验瓶失败：{e}'
+            print(f'Fail. 商店购买经验瓶失败：{e}')
+            return 0
         try:
             outp = []
             purchase_list = sorted(ret["purchase_list"], key=lambda x: x["id"])
             for dic in purchase_list:
                 outp.append(f'{exp_id2name[int(dic["id"])]}{int(dic["stock"]) - int(dic["received"])}->{dic["stock"]}')
-
         except Exception as e:
-            return f'Succeed. 商店购买经验瓶成功，但获取购买结果失败：{e}'
+            print(f'Succeed. 商店购买经验瓶成功，但获取购买结果失败：{e}')
 
-        return f'Succeed. 购买当期通常商店所有经验瓶成功：{" ".join(outp)}'
+        print(f'Succeed. 购买当期通常商店所有经验瓶成功：{" ".join(outp)}')
 
+    async def get_user_equip_dict(self) -> dict:
+        """
+        :returns: {id(int): stock(int)}
+        """
+        await self.load_index(True)
+        user_equip_list = self.load["user_equip"]
+        user_equip_dict = {}
+        for equip in user_equip_list:
+            user_equip_dict[equip["id"]] = equip["stock"]
+        return user_equip_dict
 
+    async def get_user_equip_stock(self, id: int) -> int:
+        """
+        :param id: 六位数，1打头
+        :returns: {id(int): stock(int)}
+        """
+        dic = await self.get_user_equip_dict()
+        return dic.get(int(id), 0)
 
-    async def buy_shop(account_info, cnt, buy_chara_frag, buy_equip_frag, shop_name, shop_id, coin_id, chara_coin_threshold, equip_coin_threshold, equip_cnt_threshold):
+    async def buy_shop(self, cnt, buy_chara_frag, buy_equip_frag, shop_name, shop_id, coin_id, chara_coin_threshold, equip_coin_threshold, equip_cnt_threshold):
         '''
         暂不支持刷角色碎片，因为从shop/item_list中看不出是否可以购买
         '''
@@ -813,7 +809,7 @@ class BaseApi:
             return f'Warn. 您开启了{shop_name}商店购买，但未选择购买任何类型的物品（角色碎片或装备碎片）'
 
         try:
-            data = await query.query(account_info, "/shop/item_list")
+            data = await self.client.callapi("/shop/item_list", {})
             shop_list = data["shop_list"]
             target_shop = list(filter(lambda x: x["system_id"] == shop_id, shop_list))[0]  # dict # 地下城204 JJC币202 PJJC币203
             already_buy_cnt = target_shop["reset_count"]  # 获取的是重置次数，因此即使今日已触发过地下城购买，依然会比cnt的值小1
@@ -825,7 +821,9 @@ class BaseApi:
             return f'Skip. 今日已重置{already_buy_cnt}次{shop_name}商店'
 
         try:
-            shop_coin = await query.get_item_stock(account_info, coin_id)  # 地下城币90002 竞技场币90003 公主竞技场币90004
+            for item in self.load['item_list']:
+                if item['id'] == coin_id:  # 地下城币90002 竞技场币90003 公主竞技场币90004
+                    shop_coin = item['stock']
             shop_coin_old = shop_coin
         except Exception as e:
             return f'Fail. 获取{shop_name}币数量失败：{e}'
@@ -833,9 +831,6 @@ class BaseApi:
         msg = []
 
         bought_equip_frag = {}
-        bought_chara_frag = {}
-
-        # print(f'今日重置{shop_name}次数={already_buy_cnt} 设定总购买次数={cnt}')  # test
 
         class abort(Exception):
             pass
@@ -866,7 +861,7 @@ class BaseApi:
                         if int(item.get("type", -1)) == 4 and len(item_id_str) == 6 and item_id_str[1] != "0":  # 是装备碎片
                             equip_id_str = f'10{item_id_str[2:]}'
                             try:
-                                stock = await query.get_user_equip_stock(account_info, int(item_id_str))
+                                stock = await self.get_user_equip_stock(int(item_id_str))
                             except Exception as e:
                                 msg.append(f'Abort. 获取{equip2name.get(equip_id_str, equip_id_str)}({item_id_str})存量失败：{e}')
                                 raise abort(i)
@@ -891,8 +886,7 @@ class BaseApi:
                 # print(f'选择购买的slot：{slot if len(slot) else "无"}')  # test
                 if len(slot):
                     try:  # 购买
-                        ret = await query.query(
-                            account_info, "/shop/buy_multiple", {
+                        ret = await self.client.callapi("/shop/buy_multiple", {
                                 "system_id": shop_id,
                                 "slot_ids": slot,
                                 "current_currency_num": shop_coin
@@ -916,7 +910,7 @@ class BaseApi:
                     msg.append(f'Succeed. 实际购买{cnt-already_buy_cnt}次 今日共购买{cnt}次')
                 else:  # 刷新{shop_name}
                     try:
-                        data = await query.query(account_info, "/shop/reset", {"system_id": shop_id, "current_currency_num": shop_coin})
+                        data = await self.client.callapi("/shop/reset", {"system_id": shop_id, "current_currency_num": shop_coin})
                         # print(f'重置花费：{data["shop"]["reset_cost"]}')  # test
                         shop_coin = int(data["item_data"][0]["stock"])
                         target_shop = data["shop"]
@@ -937,14 +931,11 @@ class BaseApi:
 
         return '\n'.join(msg) + '\n' + '\n'.join(bought_equip_frag_outp)
 
+    async def buy_jjc_shop(self, cnt=4, buy_chara_frag=False, buy_equip_frag=True):
+        return await self.buy_shop(cnt, buy_chara_frag, buy_equip_frag, "竞技场", 202, 90003, 20000, 50000, 300)
 
-    async def buy_jjc_shop(account_info, cnt=1, buy_chara_frag=False, buy_equip_frag=True):
-        return await buy_shop(account_info, cnt, buy_chara_frag, buy_equip_frag, "竞技场", 202, 90003, 20000, 50000, 100)
+    async def buy_pjjc_shop(self, cnt=4, buy_chara_frag=False, buy_equip_frag=True):
+        return await self.buy_shop(cnt, buy_chara_frag, buy_equip_frag, "公主", 203, 90004, 20000, 50000, 300)
 
-
-    async def buy_pjjc_shop(account_info, cnt=1, buy_chara_frag=False, buy_equip_frag=True):
-        return await buy_shop(account_info, cnt, buy_chara_frag, buy_equip_frag, "公主", 203, 90004, 20000, 50000, 100)
-
-
-    async def buy_dungeon_shop(account_info, cnt=1, buy_chara_frag=False, buy_equip_frag=True):
-        return await buy_shop(account_info, cnt, buy_chara_frag, buy_equip_frag, "地下城", 204, 90002, 50000, 100000, 300)
+    async def buy_dungeon_shop(self, cnt=7, buy_chara_frag=False, buy_equip_frag=True):
+        return await self.buy_shop(cnt, buy_chara_frag, buy_equip_frag, "地下城", 204, 90002, 50000, 100000, 300)

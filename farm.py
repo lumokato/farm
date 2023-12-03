@@ -261,23 +261,41 @@ async def main_matters():
     try:
         with open('account.json', encoding='utf-8') as fp:
             main_user = load(fp)["main"]
-
         client = ShuatuApi(main_user["vid"], main_user["uid"])
+        await client.query(client.room)
         await client.query(client.gacha)
         await client.event_hard_sweep('new')
-        # await client.star6_sweep(13029003)
+        print(await client.buy_pjjc_shop())
+        print(await client.buy_pjjc_shop())
+        print(await client.buy_pjjc_shop())
+        await client.star6_sweep(13029003)
         await client.sweep_explore_exp()
         await client.sweep_explore_mana()
-        data = await client.dungeon_sweep("max")
-        print(data)
+        print(await client.dungeon_sweep("max"))
     except Exception as e:
         log.exception(e)
         return False
+
+
+def do_main_cron():
+    log = logger('main')
+    try:
+        async def q_main():
+            task_list = []
+            task = asyncio.create_task(main_matters())
+            task_list.append(task)
+            await asyncio.gather(*task_list)
+        asyncio.run(q_main())
+        save_total()
+    except Exception as e:
+        log.exception(e)
+
 
 if __name__ == "__main__":
     scheduler = BlockingScheduler(timezone="Asia/Shanghai", job_defaults={'max_instances': 5})
     scheduler.add_job(do_equip_cron, 'cron', minute='20')
     scheduler.add_job(do_farm_cron, 'cron', hour='6,18', minute='30')
+    scheduler.add_job(do_main_cron, 'cron', hour='6', minute='0')
     scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
     scheduler.add_job(battle_remove, 'cron', day='22', hour='0', args=[scheduler])
     if 21 < datetime.datetime.today().day < 26:
