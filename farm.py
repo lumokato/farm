@@ -50,7 +50,6 @@ async def equip_donate(clan, sem):
             # 随机选取一个账号检测是否需要捐赠
             check_account = total["accounts"][random.choice(list(donate_account.keys()))]
             client = ZhuangbeiApi(check_account['vid'], check_account['uid'], total['access_key'])
-
             donate_list = await client.donate_check(bind)
             for donate in donate_list:
                 for account in sorted(donate_account.items(), key=lambda x: x[1]):
@@ -256,6 +255,24 @@ def battle_remove(scheduler_func):
     send_wechat('将于'+str(clan_time-datetime.timedelta(hours=11))+'移除农场人员')
     scheduler_func.add_job(refresh_clan, 'date', run_date=clan_time - datetime.timedelta(hours=11), args=['before'])
 
+
+async def main_matters():
+    log = logger('main')
+    try:
+        with open('account.json', encoding='utf-8') as fp:
+            main_user = load(fp)["main"]
+
+        client = ShuatuApi(main_user["vid"], main_user["uid"])
+        await client.query(client.gacha)
+        await client.event_hard_sweep('new')
+        # await client.star6_sweep(13029003)
+        await client.sweep_explore_exp()
+        await client.sweep_explore_mana()
+        data = await client.dungeon_sweep("max")
+        print(data)
+    except Exception as e:
+        log.exception(e)
+        return False
 
 if __name__ == "__main__":
     scheduler = BlockingScheduler(timezone="Asia/Shanghai", job_defaults={'max_instances': 5})

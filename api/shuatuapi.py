@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 from api.normallist import shuatu_list
 from .baseapi import BaseApi
@@ -20,12 +21,24 @@ def quest_stamina(quest_id: int):
         return 16
     elif 12004001 <= quest_id < 12007001:
         return 18
-    elif 12007001 <= quest_id < 12099001:
+    elif 12007001 <= quest_id < 13099001:
         return 20
     elif 18001001 <= quest_id <= 19001002:
         return 15
     elif quest_id < 11000000:
-        return 8
+        identify_code = quest_id % 1000
+        if identify_code in [101, 102, 103, 104, 105]:
+            return 8
+        elif identify_code in [106, 107, 108, 109, 110]:
+            return 9
+        elif identify_code in [111, 112, 113, 114, 115]:
+            return 10
+        elif identify_code in [201, 202]:
+            return 16
+        elif identify_code in [203, 204]:
+            return 18
+        elif identify_code in [205]:
+            return 20
 
 
 class ShuatuApi(BaseApi):
@@ -260,3 +273,100 @@ class ShuatuApi(BaseApi):
         else:
             # 非N2时只刷H图
             await self.shuatu_allH()
+
+    # 主号经验本
+    async def sweep_explore_exp(self):
+        x_remain = self.home["training_quest_max_count"]["exp_quest"] - self.home["training_quest_count"]["exp_quest"]
+        if x_remain == 0:
+            return f'Skip. 今日已完成EXP探索'
+        else:
+            for i in range(21002013, 21002000, -1):
+                if i in self.quest_dict and self.quest_dict[i]["clear_flg"] == 3:
+                    try:
+                        temp = await self.client.callapi('/training_quest/quest_skip', {
+                            'quest_id': i, 'random_count': x_remain, 'current_ticket_num': self.num_ticket})
+                        if 'quest_result_list' not in temp:
+                            return False
+                        self.num_ticket = temp['item_list'][0]['stock']
+                        print(f'Succeed. 成功进行EXP探索({i%100}级，{x_remain}次)')
+                        break
+                    except Exception as e:
+                        print(f'Fail. EXP探索({i%100}级，{x_remain}次)失败：{e}')
+                        break
+
+    async def sweep_explore_mana(self):
+        x_remain = self.home["training_quest_max_count"][
+            "gold_quest"] - self.home["training_quest_count"]["gold_quest"]
+        if x_remain == 0:
+            return f'Skip. 今日已完成MANA探索'
+        else:
+            for i in range(21001013, 21001000, -1):
+                if i in self.quest_dict and self.quest_dict[i]["clear_flg"] == 3:
+                    try:
+                        temp = await self.client.callapi('/training_quest/quest_skip', {
+                            'quest_id': i, 'random_count': x_remain, 'current_ticket_num': self.num_ticket})
+                        if 'quest_result_list' not in temp:
+                            return False
+                        self.num_ticket = temp['item_list'][0]['stock']
+                        print(f'Succeed. 成功进行MANA探索({i % 100}级，{x_remain}次)')
+                        break
+                    except Exception as e:
+                        print(f'Fail. MANA探索({i % 100}级，{x_remain}次)失败：{e}')
+                        break
+
+    async def star6_sweep(self, map_id):
+        with open('unit_id.json', encoding='utf-8') as fp:
+            unit_dict = json.load(fp)
+        with open('star6.json', encoding='utf-8') as fp:
+            star6_dict = json.load(fp)
+        item_id = star6_dict[str(map_id)]
+        chara_id = f'1{str(item_id)[-3:]}01'
+        chara_name = unit_dict[chara_id]
+        stamina_before = self.stamina
+        try:
+            await self.quest(map_id, 3, 0)
+            if self.stamina < stamina_before:
+                chara_pure_frag_stock = await self.get_item_stock(item_id)
+                print(f'Success. {chara_name} 的纯净记忆碎片共{chara_pure_frag_stock}片')
+        except Exception as e:
+            print(e)
+
+    async def event_hard_sweep(self, sweep_type: str, map_list=[1, 3, 5]):
+        '''
+        sweep_type: enum("old", "new", "all")
+        '''
+
+        try:
+            event_id_list, msg = await self.get_event_id_list(sweep_type)
+        except Exception as e:
+            print(e)
+
+        for event_id in event_id_list:
+            print(f'活动{event_id}')
+            try:
+                event_quest = await self.client.callapi("/event/hatsune/quest_top", {"event_id": event_id})
+                quest_list = event_quest["quest_list"]
+                for _quest in quest_list:
+                    if _quest['clear_flag'] == 3 and _quest['result_type'] == 2:
+                        self.quest_dict[_quest['quest_id']] = _quest['daily_clear_count']
+            except Exception as e:
+                print(f'Fail. 获取活动{event_id}通关信息失败：{e}')
+                break
+            self.event_id = event_id
+            for i in map_list:
+                # msg.append(f'H1-{i}: ')
+                f = False
+                quest_id = int(f'{event_id}2{i:02d}')
+                for _quest in quest_list:
+                    if _quest["quest_id"] == quest_id:
+                        f = True
+                        if _quest["clear_flag"] != 3:
+                            print(f'Abort. H1-{i}为{_quest["clear_flag"]}星通关，无法扫荡')
+                            break
+                        if _quest["daily_clear_count"] == 3:
+                            print(f'Skip. H1-{i}已扫荡')
+                            break
+                        await self.quest(quest_id, 3 - _quest["daily_clear_count"], 0)
+                if not f:
+                    print(f'Abort. H1-{i} Unlock')
+                    break
