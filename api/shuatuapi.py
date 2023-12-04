@@ -322,10 +322,10 @@ class ShuatuApi(BaseApi):
         item_id = star6_dict[str(map_id)]
         chara_id = f'1{str(item_id)[-3:]}01'
         chara_name = unit_dict[chara_id]
-        stamina_before = self.stamina
+        stamina_before = self.user_stamina
         try:
             await self.quest(map_id, 3, 0)
-            if self.stamina < stamina_before:
+            if self.user_stamina < stamina_before:
                 chara_pure_frag_stock = await self.get_item_stock(item_id)
                 print(f'Success. {chara_name} 的纯净记忆碎片共{chara_pure_frag_stock}片')
         except Exception as e:
