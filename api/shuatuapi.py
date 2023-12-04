@@ -281,7 +281,7 @@ class ShuatuApi(BaseApi):
             return f'Skip. 今日已完成EXP探索'
         else:
             for i in range(21002013, 21002000, -1):
-                if i in self.quest_dict and self.quest_dict[i]["clear_flg"] == 3:
+                if i in self.quest_dict.keys() and self.quest_dict[i]["clear_flg"] == 3:
                     try:
                         temp = await self.client.callapi('/training_quest/quest_skip', {
                             'quest_id': i, 'random_count': x_remain, 'current_ticket_num': self.num_ticket})
@@ -301,7 +301,7 @@ class ShuatuApi(BaseApi):
             return f'Skip. 今日已完成MANA探索'
         else:
             for i in range(21001013, 21001000, -1):
-                if i in self.quest_dict and self.quest_dict[i]["clear_flg"] == 3:
+                if i in self.quest_dict.keys() and self.quest_dict[i]["clear_flg"] == 3:
                     try:
                         temp = await self.client.callapi('/training_quest/quest_skip', {
                             'quest_id': i, 'random_count': x_remain, 'current_ticket_num': self.num_ticket})
