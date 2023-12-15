@@ -180,7 +180,6 @@ class PCRClient:
         for retry in range(4):
             await self.callapi('tool/sdk_login', {"uid": uid, "access_key": access_key, "platform": self.default_headers["PLATFORM-ID"], "channel_id": self.default_headers["CHANNEL-ID"]})
             await self.callapi('check/game_start', {"app_type": 0, "campaign_data": "", "campaign_user": random.randint(1, 1000000)})
-            await self.callapi("check/check_agreement", {})
             load = await self.callapi("load/index", {"carrier": "google"})
             home = await self.callapi("home/index", {'message_id': random.randint(1, 5000), 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
             if 'server_error' not in home:
