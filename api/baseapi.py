@@ -1,5 +1,6 @@
 from .pcrclient import PCRClient
 import time
+import datetime
 from json import load
 import asyncio
 
@@ -231,7 +232,10 @@ class BaseApi:
                                                             'campaign_id': 0})
         await asyncio.sleep(2)
         if self.compaign_gacha_time:
-            await self.gacha_compaign(campaign_gacha_id, exchange_id)
+            time_now = datetime.datetime.now()
+            # 免费扭蛋设定在下午抽取
+            if time_now.hour > 12:
+                await self.gacha_compaign(campaign_gacha_id, exchange_id)
         # if 'ticket_gacha_info' in temp:
         #     await self.gacha_ticket()
         return True

@@ -262,16 +262,20 @@ async def main_matters():
         with open('account.json', encoding='utf-8') as fp:
             main_user = load(fp)["main"]
         client = ShuatuApi(main_user["vid"], main_user["uid"])
-        await client.query(client.room)
-        await client.query(client.gacha)
-        #await client.event_hard_sweep('new')
-        print(await client.buy_dungeon_shop())
-        print(await client.buy_jjc_shop())
-        print(await client.buy_pjjc_shop())
-        #await client.star6_sweep(13029003)
-        await client.sweep_explore_exp()
-        await client.sweep_explore_mana()
-        print(await client.dungeon_sweep("max"))
+        time_now = datetime.datetime.now()
+        if time_now.hour < 12:
+            await client.query(client.gacha)
+            # await client.event_hard_sweep('new')
+            print(await client.buy_dungeon_shop())
+            print(await client.buy_jjc_shop())
+            print(await client.buy_pjjc_shop())
+            # await client.star6_sweep(13029003)
+            await client.sweep_explore_exp()
+            await client.sweep_explore_mana()
+            print(await client.dungeon_sweep("max"))
+        else:
+            await client.query(client.room)
+            await client.query(client.gacha)
     except Exception as e:
         log.exception(e)
         return False
