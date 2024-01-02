@@ -3,6 +3,7 @@ import time
 import datetime
 from json import load
 import asyncio
+import random
 
 with open('account.json', encoding='utf-8') as fp:
     total_api = load(fp)
@@ -140,13 +141,6 @@ class BaseApi:
         if 'users' not in temp:
             return False
         return temp
-
-    # 点赞
-    async def like(self, clan_id: int, viewer_id: int):
-        temp = await self.client.callapi('clan/like', {'clan_id': clan_id, 'target_viewer_id': viewer_id})
-        if 'stamina_info' not in temp:
-            return False
-        return temp['stamina_info']['user_stamina']
 
     # 任务查看与收取
     async def mission(self):
@@ -519,20 +513,23 @@ class BaseApi:
 
     # 女神祭
     async def season_ticket(self):
-        temp = await self.client.callapi('season_ticket_new/index', {'season_id': 10002})
-        if 'missions' in temp:
-            temp1 = await self.client.callapi('season_ticket_new/accept', {'season_id': 10002, 'mission_id': 0})
-            if 'seasonpass_level' in temp1:
-                print('    当前女神祭解锁等级为' + str(temp1['seasonpass_level']))
-        return True
+        if 'season_ticket' in self.home:
+            season_id = self.home["season_ticket"]["season_id"]
+            temp = await self.client.callapi('season_ticket_new/index', {'season_id': season_id})
+            if 'missions' in temp:
+                temp1 = await self.client.callapi('season_ticket_new/accept', {'season_id': season_id, 'mission_id': 0})
+                if 'seasonpass_level' in temp1:
+                    print('    当前女神祭解锁等级为' + str(temp1['seasonpass_level']))
+            return True
 
     # 女神祭收取
     async def season_ticket_reward(self):
         if 'season_ticket' in self.home:
+            season_id = self.home["season_ticket"]["season_id"]
             level = self.home['season_ticket']['seasonpass_level']
             print('    女神祭等级为' + str(level))
             temp = await self.client.callapi(
-                'season_ticket_new/reward', {'season_id': 10002, 'level': 0, 'index': 0})
+                'season_ticket_new/reward', {'season_id': season_id, 'level': 0, 'index': 0})
             if 'received_rewards' in temp:
                 print('    已收取女神祭等级' + str(temp['received_rewards']))
         return True
@@ -943,3 +940,74 @@ class BaseApi:
 
     async def buy_dungeon_shop(self, cnt=7, buy_chara_frag=False, buy_equip_frag=True):
         return await self.buy_shop(cnt, buy_chara_frag, buy_equip_frag, "地下城", 204, 90002, 50000, 100000, 300)
+
+    async def random_like(self):
+        if not self.clan_like:
+            try:
+                info = await self.client.callapi("/clan/info", {
+                    "clan_id": self.clan_id,
+                    "get_user_equip": 0
+                })
+            except Exception as e:
+                return f'Fail. 获取公会信息失败：{e}'
+            member_list = []
+            for member in info.get("clan", {}).get("members", []):
+                if member["viewer_id"] != self.viewer_id:
+                    member_list.append(member)
+            if not member_list:
+                return f'Skip. 公会中没有其他成员'
+            member_chosen = random.choice(member_list)
+            try:
+                temp = await self.client.callapi('clan/like', {
+                    'clan_id': self.clan_id,
+                    'target_viewer_id': member_chosen["viewer_id"]
+                })
+            except Exception as e:
+                return f'Fail. 点赞成员 {member_chosen["name"]} 失败：{e}'
+            return f'Succeed. 点赞成员 {member_chosen["name"]} 成功'
+
+    # 发起装备捐赠
+    async def clan_equip_donation(self):
+        with open('account.json', encoding='utf-8') as fp:
+            main_user = load(fp)["main"]
+            request_equip_id = main_user["donate_equip"]
+
+        try:
+            if self.clan_id:
+                ret = await self.client.callapi("/clan/info", {"clan_id": 0, "get_user_equip": 0})
+                interval_between_last_donation = int(ret["servertime"]) - int(ret.get("latest_request_time", 0))
+        except Exception as e:
+            return f'Fail. 获取距离上次装备请求时间失败：{e}'
+        if interval_between_last_donation < 8 * 3600:
+            return f'Skip. 当前距上次请求装备时间{interval_between_last_donation/3600:.1f}h，不足8h'
+
+        try:
+            await self.home_index(True)
+        except Exception as e:
+            return f'Fail. 获取主页信息失败：{e}'
+
+        msg = []
+
+        message_id = self.home.get("new_equip_donation", {}).get("message_id", 0)
+        if message_id != 0:  # 代表捐赠消息未读。此时应先获取捐赠请求情况，随后发起新请求。
+            try:
+                ret = await self.client.callapi("/equipment/get_request", {"clan_id": self.clan_id, "message_id": message_id})
+                equip_id = ret["request"]["equip_id"]
+                donation_num = ret["request"]["donation_num"]
+            except Exception as e:
+                msg.append(f'Fail. 获取上次装备请求结果失败：{e}')
+            else:
+                msg.append(f'距上次捐赠请求{interval_between_last_donation/3600:.1f}h')
+                item_id_str = str(equip_id)
+                if len(item_id_str) == 6:
+                    item_id_str_full = item_id_str[:1] + '0' + item_id_str[2:]
+                msg.append(f'获得装备碎片 {equip2name.get(item_id_str_full)}×{donation_num}')
+
+        try:
+            item_id_str = str(request_equip_id)
+            if len(item_id_str) == 6:
+                item_id_str_full = item_id_str[:1] + '0' + item_id_str[2:]
+            ret = await self.client.callapi("/equipment/request", {"equip_id": request_equip_id, "clan_id": self.clan_id})
+        except Exception as e:
+            return f'Fail. 装备{equip2name.get(item_id_str_full)}发起捐赠失败：{e}'
+        return f'Succeed. 装备{equip2name.get(item_id_str_full)}发起捐赠成功'

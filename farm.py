@@ -63,10 +63,13 @@ async def equip_donate(clan, sem):
                     if not donate_continue:
                         break
                 donate_name = bind['users'][str(donate[0])]
-                if str(donate[2]) in equip_id:
-                    equip_name = equip_id[str(donate[2])]
+                item_id_str = str(donate[2])
+                if len(item_id_str) == 6:
+                    item_id_str_full = item_id_str[:1] + '0' + item_id_str[2:]
+                if item_id_str_full in equip_id:
+                    equip_name = equip_id[item_id_str_full]
                 else:
-                    equip_name = str(donate[2])
+                    equip_name = item_id_str_full
                 print('已向 ' + donate_name + ' 捐赠装备 ' + equip_name)
 
 
@@ -117,6 +120,9 @@ async def daily_matters(index, vid, sem):
             await client.load_index(requery=True)
             if client.user_stamina > 80:
                 await client.shuatu_daily(n_event, total['max_level'])
+            # 女神祭
+            await client.season_ticket()
+            await client.season_ticket_reward()
 
             global account_finish
             account_finish[index] = 1
@@ -263,8 +269,11 @@ async def main_matters():
             main_user = load(fp)["main"]
         client = ShuatuApi(main_user["vid"], main_user["uid"])
         time_now = datetime.datetime.now()
-        if time_now.hour < 12:
+        if time_now.hour == 11:
+            await asyncio.sleep(20+time_now.day*60)
             await client.query(client.gacha)
+            print(await client.clan_equip_donation())
+            print(await client.random_like())
             print(await client.buy_dungeon_shop())
             print(await client.buy_jjc_shop())
             print(await client.buy_pjjc_shop())
@@ -276,10 +285,15 @@ async def main_matters():
                 await client.query(client.room)
                 await client.event_hard_sweep('new')
                 await client.star6_sweep(13030001)
-        else:
+        elif time_now.hour == 19:
+            await asyncio.sleep(40+time_now.day*60)
+            await client.query(client.gacha)
+            print(await client.clan_equip_donation())
             if time_now.day > 12:
                 await client.query(client.room)
-            await client.query(client.gacha)
+        else:
+            await asyncio.sleep(time_now.day*60)
+            print(await client.query(client.clan_equip_donation))
     except Exception as e:
         log.exception(e)
         return False
@@ -303,7 +317,7 @@ if __name__ == "__main__":
     scheduler = BlockingScheduler(timezone="Asia/Shanghai", job_defaults={'max_instances': 5})
     scheduler.add_job(do_equip_cron, 'cron', minute='20')
     scheduler.add_job(do_farm_cron, 'cron', hour='6,18', minute='30')
-    scheduler.add_job(do_main_cron, 'cron', hour='6,18', minute='3')
+    scheduler.add_job(do_main_cron, 'cron', hour='3,11,19', minute='5')
     scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
     scheduler.add_job(battle_remove, 'cron', day='22', hour='0', args=[scheduler])
     if 21 < datetime.datetime.today().day < 26:
