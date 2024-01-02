@@ -265,16 +265,20 @@ async def main_matters():
         time_now = datetime.datetime.now()
         if time_now.hour < 12:
             await client.query(client.gacha)
-            # await client.event_hard_sweep('new')
             print(await client.buy_dungeon_shop())
             print(await client.buy_jjc_shop())
             print(await client.buy_pjjc_shop())
-            # await client.star6_sweep(13029003)
             await client.sweep_explore_exp()
             await client.sweep_explore_mana()
             print(await client.dungeon_sweep("max"))
+            # 每月前半
+            if time_now.day < 13:
+                await client.query(client.room)
+                await client.event_hard_sweep('new')
+                await client.star6_sweep(13030001)
         else:
-            await client.query(client.room)
+            if time_now.day > 12:
+                await client.query(client.room)
             await client.query(client.gacha)
     except Exception as e:
         log.exception(e)
@@ -299,7 +303,7 @@ if __name__ == "__main__":
     scheduler = BlockingScheduler(timezone="Asia/Shanghai", job_defaults={'max_instances': 5})
     scheduler.add_job(do_equip_cron, 'cron', minute='20')
     scheduler.add_job(do_farm_cron, 'cron', hour='6,18', minute='30')
-    scheduler.add_job(do_main_cron, 'cron', hour='6,18', minute='0')
+    scheduler.add_job(do_main_cron, 'cron', hour='6,18', minute='3')
     scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
     scheduler.add_job(battle_remove, 'cron', day='22', hour='0', args=[scheduler])
     if 21 < datetime.datetime.today().day < 26:
