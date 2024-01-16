@@ -536,7 +536,7 @@ class BaseApi:
 
     async def check_equip_num(self):
         for equip in self.load['user_equip']:
-            if equip['id'] == 115192:
+            if equip['id'] == 101371:
                 print(str(self.viewer_id)+'碎片数'+str(equip['stock']))
 
     # 地下城跳过

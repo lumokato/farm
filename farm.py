@@ -135,8 +135,14 @@ async def daily_matters(index, vid, sem):
 
 
 def change_n_event():
-    now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    n_event = bilievent.load_event_bilibili(datetime.datetime.strptime(now_time, "%Y-%m-%d %H:%M:%S"))
+    # n_event = bilievent.load_event_cn(datetime.datetime.strptime(now_day, "%Y-%m-%d %H:%M:%S"))
+    now_day = time.strftime("%d", time.localtime())
+    if now_day in [15,16,17,18,19,]:
+        n_event = 3
+    elif now_day in [26,27,28,29]:
+        n_event = 2
+    else:
+        n_event = 0
     total['N_event'] = n_event
     save_total()
 
