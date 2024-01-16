@@ -290,11 +290,12 @@ async def main_matters():
             await client.query(client.gacha)
             print(await client.clan_equip_donation())
             await client.season_ticket()
-            if time_now.day > 12:
-                await client.query(client.room)
+            # if time_now.day > 12:
+            #     await client.query(client.room)
         else:
             await asyncio.sleep(time_now.day*60)
             print(await client.query(client.clan_equip_donation))
+            await client.query(client.mission)
     except Exception as e:
         log.exception(e)
         return False
