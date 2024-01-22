@@ -137,9 +137,9 @@ async def daily_matters(index, vid, sem):
 def change_n_event():
     # n_event = bilievent.load_event_cn(datetime.datetime.strptime(now_day, "%Y-%m-%d %H:%M:%S"))
     now_day = time.strftime("%d", time.localtime())
-    if now_day in [15,16,17,18,19,]:
+    if int(now_day) in [15,16,17,18,19]:
         n_event = 3
-    elif now_day in [26,27,28,29]:
+    elif int(now_day) in [26,27,28,29]:
         n_event = 2
     else:
         n_event = 0
@@ -296,6 +296,7 @@ async def main_matters():
             await client.query(client.gacha)
             print(await client.clan_equip_donation())
             await client.season_ticket()
+            print('已登录账号' + str(client.viewer_id) + ",账号等级为" + str(client.team_level) + ',现有体力为' + str(client.user_stamina) + ',免费钻量' + str(client.user_jewel))
             # if time_now.day > 12:
             #     await client.query(client.room)
         else:
@@ -325,7 +326,7 @@ if __name__ == "__main__":
     scheduler = BlockingScheduler(timezone="Asia/Shanghai", job_defaults={'max_instances': 5})
     scheduler.add_job(do_equip_cron, 'cron', minute='20')
     scheduler.add_job(do_farm_cron, 'cron', hour='6,18', minute='30')
-    scheduler.add_job(do_main_cron, 'cron', hour='3,11,19', minute='5')
+    scheduler.add_job(do_main_cron, 'cron', hour='3,11,19', minute='25')
     scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
     scheduler.add_job(battle_remove, 'cron', day='22', hour='0', args=[scheduler])
     if 21 < datetime.datetime.today().day < 26:
