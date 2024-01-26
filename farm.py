@@ -275,7 +275,7 @@ async def main_matters():
             main_user = load(fp)["main"]
         client = ShuatuApi(main_user["vid"], main_user["uid"])
         time_now = datetime.datetime.now()
-        if time_now.hour == 11:
+        if time_now.hour == 10 or time_now.hour == 9:
             await asyncio.sleep(20+time_now.day*60)
             await client.query(client.gacha)
             print(await client.clan_equip_donation())
@@ -290,8 +290,8 @@ async def main_matters():
             if time_now.day < 13:
                 await client.query(client.room)
                 await client.event_hard_sweep('new')
-                await client.star6_sweep(13030001)
-        elif time_now.hour == 19:
+                await client.star6_sweep(13030002)
+        elif time_now.hour == 18 or time_now.hour == 17:
             await asyncio.sleep(40+time_now.day*60)
             await client.query(client.gacha)
             print(await client.clan_equip_donation())
@@ -299,10 +299,20 @@ async def main_matters():
             print('已登录账号' + str(client.viewer_id) + ",账号等级为" + str(client.team_level) + ',现有体力为' + str(client.user_stamina) + ',免费钻量' + str(client.user_jewel))
             # if time_now.day > 12:
             #     await client.query(client.room)
+        elif time_now.hour == 5:    # 会战期间
+            await client.query(client.gacha)
+            print(await client.random_like())
+            print(await client.buy_dungeon_shop())
+            print(await client.buy_jjc_shop())
+            print(await client.buy_pjjc_shop())
+            await client.sweep_explore_exp()
+            await client.sweep_explore_mana()
+            print(await client.dungeon_sweep("max"))
         else:
             await asyncio.sleep(time_now.day*60)
             print(await client.query(client.clan_equip_donation))
             await client.query(client.mission)
+
     except Exception as e:
         log.exception(e)
         return False
@@ -321,12 +331,24 @@ def do_main_cron():
     except Exception as e:
         log.exception(e)
 
+# 按日期修改每日执行时间
+def daily_cron(scheduler_func):
+    today = datetime.datetime.today()
+    monthdays = calendar.monthrange(today.year, today.month)
+    for i in range(1, monthdays[1]+1):
+        if i < monthdays[1]-5:
+            scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='2,10,18', minute='25')
+        elif i == monthdays[1]:
+            scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='1,9,17', minute='25')
+        else:
+            scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='5', minute='25')
+
 
 if __name__ == "__main__":
     scheduler = BlockingScheduler(timezone="Asia/Shanghai", job_defaults={'max_instances': 5})
     scheduler.add_job(do_equip_cron, 'cron', minute='20')
     scheduler.add_job(do_farm_cron, 'cron', hour='6,18', minute='30')
-    scheduler.add_job(do_main_cron, 'cron', hour='3,11,19', minute='25')
+    daily_cron(scheduler)
     scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
     scheduler.add_job(battle_remove, 'cron', day='22', hour='0', args=[scheduler])
     if 21 < datetime.datetime.today().day < 26:
