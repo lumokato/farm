@@ -4,3 +4,4 @@ apscheduler>=3.7.0
 requests>=2.21.0
 python-dateutil
 six
+aiohttp

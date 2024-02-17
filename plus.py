@@ -210,6 +210,85 @@ def check_equip_stock():
         print(e)
         log.exception(e)
 
+# 同步账号至satroki
+def edit_satroki(vid, uid=None):
+    if vid == total["main"]["vid"]:
+        uid = total["main"]["uid"]
+    else:
+        for account in total["accounts"]:
+            if vid == account["vid"]:
+                uid = account["uid"]
+    if not uid:
+        return 0
+
+    def unit_trans(data_list):
+        id_list = []
+        unit_list = []
+        for data in data_list['unit_list']:
+            id_list.append(data['id'])
+            data_dict = {
+                "unitId": data['id'],
+                "level": data['unit_level'],
+                "rarity": data['unit_rarity'],
+                "promotion": data['promotion_level']
+            }
+            if data['unique_equip_slot']:
+                if data['unique_equip_slot'][0]['is_slot']:
+                    data_dict["uniqueEquipRank"] = data['unique_equip_slot'][0]['enhancement_level']
+            for i in range(6):
+                if data['equip_slot'][i]['is_slot'] == 1:
+                    data_dict["slot"+str(i+1)] = True
+            unit_list.append(data_dict)
+        for chara in data_list['user_chara_info']:
+            unitid = chara['chara_id'] * 100 + 1
+            for i in unit_list:
+                if i['unitId'] == unitid:
+                    i["loveLevel"] = chara['love_level']
+        for piece in data_list['item_list']:
+            if piece['id'] > 31000 and piece['id'] < 31999:
+                unitid = (piece['id'] - 30000) * 100 + 1
+            for i in unit_list:
+                if i['unitId'] == unitid:
+                    i["pieces"] = piece['stock']
+        return id_list, unit_list
+    
+    def sync_satroki(id_list, unit_list, eqiup_list):
+        client = WebClient()
+        client.login()
+        client.get_box()
+        # 修改box
+        box_pre = []
+        for chara in client.box_list:
+            if chara['id']:
+                box_pre.append(chara['id'])
+        client.delete_user(box_pre)
+        client.add_user(id_list)
+        # 修改角色状态
+        client.get_box()
+        for unit_dict in unit_list:
+            client.edit_user(unit_dict)
+            print("已完成更新角色" + str(unit_dict["unitId"]))
+        # 修改装备库存
+        item_list = []
+        for item in eqiup_list:
+            item_list.append({"eId": item['id'], "stock": item['stock']})
+        client.save_equip(item_list)
+        print("修改装备库存完成")
+
+    async def satroki_main():
+        client = BaseApi(vid, uid)
+        await client.query(client.load_index)
+        id_list, unit_list = unit_trans(client.load)
+        eqiup_list = client.load['user_equip']
+        sync_satroki(id_list, unit_list, eqiup_list)
+
+    async def q_main():
+            task_list = []
+            task = asyncio.create_task(satroki_main())
+            task_list.append(task)
+            await asyncio.gather(*task_list)
+    asyncio.run(q_main())
+
 
 
 if __name__ == '__main__':
