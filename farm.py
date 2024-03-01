@@ -290,8 +290,10 @@ async def main_matters():
             # 每月前半
             if time_now.day < 13:
                 await client.query(client.room)
-                await client.event_hard_sweep('new')
-                # await client.star6_sweep(13030002)
+                # await client.event_hard_sweep('new')
+                await client.star6_sweep(13030003)
+                await client.star6_sweep(13031001)
+                await client.star6_sweep(13030002)
         elif time_now.hour == 18 or time_now.hour == 17:
             await asyncio.sleep(40+time_now.day*60)
             await client.query(client.gacha)
@@ -308,7 +310,7 @@ async def main_matters():
             print(await client.buy_pjjc_shop())
             await client.sweep_explore_exp()
             await client.sweep_explore_mana()
-            # print(await client.dungeon_sweep("max"))
+            print(await client.dungeon_sweep("max"))
         else:
             await asyncio.sleep(time_now.day*60)
             print(await client.query(client.clan_equip_donation))
