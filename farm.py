@@ -339,9 +339,9 @@ def daily_cron(scheduler_func):
     today = datetime.datetime.today()
     monthdays = calendar.monthrange(today.year, today.month)
     for i in range(1, monthdays[1]+1):
-        if i < monthdays[1]-5:
+        if i < monthdays[1]-7:
             scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='2,10,18', minute='25')
-        elif i == monthdays[1]:
+        elif i == monthdays[1]-2:
             scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='1,9,17', minute='25')
         else:
             scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='5', minute='25')
