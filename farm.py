@@ -291,9 +291,8 @@ async def main_matters():
             if time_now.day < 13:
                 await client.query(client.room)
                 # await client.event_hard_sweep('new')
-                await client.star6_sweep(13030003)
-                await client.star6_sweep(13031001)
-                await client.star6_sweep(13030002)
+                await client.star6_sweep(13031002)
+                await client.quest(12052003, 3, 0)  # 雪菲碎片本
         elif time_now.hour == 18 or time_now.hour == 17:
             await asyncio.sleep(40+time_now.day*60)
             await client.query(client.gacha)
@@ -339,9 +338,9 @@ def daily_cron(scheduler_func):
     today = datetime.datetime.today()
     monthdays = calendar.monthrange(today.year, today.month)
     for i in range(1, monthdays[1]+1):
-        if i < monthdays[1]-7:
+        if i < monthdays[1]-5:
             scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='2,10,18', minute='25')
-        elif i == monthdays[1]-2:
+        elif i == monthdays[1]:
             scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='1,9,17', minute='25')
         else:
             scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='5', minute='25')
