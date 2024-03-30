@@ -66,3 +66,22 @@ class SceneApi(BaseApi):
                     if not await self.storycheck(zhuxian_id):
                         break
         return True
+
+    # 周年剧情解锁
+    async def annicheck(self):
+        # try:
+        await self.load_index(requery=True)
+        for event in self.load['event_sub_story']:
+            if event['event_id'] == 10084:
+                for sub_story in event['sub_story_info_list']:
+                    print(sub_story)
+                    if int(sub_story['status']) == 1: # 未解锁
+                        res = await self.client.callapi('/story/check', {'story_id': sub_story['sub_story_id']})
+                        await asyncio.sleep(random.randint(3, 9))
+                        res = await self.client.callapi('/sub_story/ysn/read_story', {'sub_story_id': sub_story['sub_story_id']})
+                        if 'server_error' in res:
+                            return False
+                        else:
+                            print('已阅读'+str(sub_story['sub_story_id']))
+        # except Exception:
+        #     return False

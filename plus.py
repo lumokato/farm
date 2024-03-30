@@ -4,6 +4,7 @@
 from api.baseapi import BaseApi, all_account
 from api.friendapi import FriendApi
 from api.gonghuiapi import GonghuiApi
+from api.sceneapi import SceneApi
 from log import logger
 from json import load, dump
 from os.path import exists
@@ -289,6 +290,22 @@ def edit_satroki(vid, uid=None):
             await asyncio.gather(*task_list)
     asyncio.run(q_main())
 
+# 清周年活动剧情
+def anniversary_skip():
+    vid = total["main"]["vid"]
+    uid = total["main"]["uid"]
+    
+    async def skip_main():
+        client = SceneApi(vid, uid)
+        await client.query(client.load_index)
+        await client.annicheck()
+
+    async def anni_main():
+            task_list = []
+            task = asyncio.create_task(skip_main())
+            task_list.append(task)
+            await asyncio.gather(*task_list)
+    asyncio.run(anni_main())
 
 
 if __name__ == '__main__':
