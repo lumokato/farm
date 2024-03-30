@@ -940,6 +940,32 @@ class BaseApi:
 
     async def buy_dungeon_shop(self, cnt=7, buy_chara_frag=False, buy_equip_frag=True):
         return await self.buy_shop(cnt, buy_chara_frag, buy_equip_frag, "地下城", 204, 90002, 50000, 100000, 300)
+    
+    async def buy_daily_shop(self):
+        try:
+            data = await self.client.callapi("/shop/item_list", {})
+            shop_list = data["shop_list"]
+            target_shop = list(filter(lambda x: x["system_id"] == 212, shop_list))[0]
+            slot_list = []
+            for slot in target_shop["item_list"]:
+                if int(slot["sold"]) == 0:
+                    slot_list.append(slot["slot_id"])
+        except Exception as e:
+            return f'获取每日限定商店失败'
+        
+        if slot_list:
+            try:
+                self.load = await self.client.callapi("load/index", {"carrier": "google"})
+                self.gold = self.load['user_gold']['gold_id_free']
+                ret = await self.client.callapi("/shop/buy_multiple", {
+                                    "system_id": 212,
+                                    "slot_ids": slot_list,
+                                    "current_currency_num": self.gold})
+                if ret['user_gold']['gold_id_free'] < self.gold:
+                    return f"    每日限定商店购买成功"
+                print('1')
+            except Exception as e:
+                return f'Abort. 购买每日限定商店失败'
 
     async def random_like(self):
         if not self.clan_like:
@@ -1011,3 +1037,27 @@ class BaseApi:
         except Exception as e:
             return f'Fail. 装备{equip2name.get(item_id_str_full)}发起捐赠失败：{e}'
         return f'Succeed. 装备{equip2name.get(item_id_str_full)}发起捐赠成功'
+    
+    async def luna_skip(self):
+        try:
+            data = await self.client.callapi("/tower/top", {"is_first": 1, "return_cleared_ex_quest": 1})
+            if data["cloister_first_cleared_flag"] == 0:
+                return 'Fail. 尚未通关回廊探索'
+            remain = data["cloister_remain_clear_count"]
+            if remain == 0:
+                return f'Skip. 今日回廊探索已扫荡完毕'
+            ex_quest_id = data["cleared_ex_quest_ids"][-1]
+            skip_data = await self.client.callapi("/tower/cloister_battle_skip", {"quest_id": ex_quest_id,
+                                                                      "skip_count": remain,
+                                                                       "current_ticket_num": self.num_ticket
+                                                                     })
+            if 'item_list' in skip_data:
+                for item in skip_data['item_list']:
+                    if item['id'] == 23001:  # 扫荡券
+                        self.num_ticket = item['stock']
+            return '回廊探索扫荡成功'
+        except Exception as e:
+            return 'Abort. 当前露娜塔未开放，已自动关闭该功能。'
+        
+        
+

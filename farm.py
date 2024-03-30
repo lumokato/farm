@@ -117,13 +117,14 @@ async def daily_matters(index, vid, sem):
             # await client.query(client.alchemy)   # 购买扫荡券
             await client.query(client.training_skip)     # 探索本
             await client.query(client.mission)  # 收取任务
+            print(await client.query(client.buy_daily_shop))
             # 如果收取任务时升级，再次执行刷图函数
             await client.load_index(requery=True)
             if client.user_stamina > 80:
                 await client.shuatu_daily(n_event, total['max_level'])
             # 女神祭
-            await client.season_ticket()
-            await client.season_ticket_reward()
+            # await client.season_ticket()
+            # await client.season_ticket_reward()
 
             global account_finish
             account_finish[index] = 1
@@ -314,6 +315,7 @@ async def main_matters():
             await asyncio.sleep(time_now.day*60)
             print(await client.query(client.clan_equip_donation))
             await client.query(client.mission)
+            print(await client.query(client.buy_daily_shop))
 
     except Exception as e:
         log.exception(e)
