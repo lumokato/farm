@@ -72,7 +72,7 @@ class SceneApi(BaseApi):
         # try:
         await self.load_index(requery=True)
         for event in self.load['event_sub_story']:
-            if event['event_id'] == 10084:
+            if event['event_id'] == 10085:  # 10084为上篇, 10085为下篇
                 for sub_story in event['sub_story_info_list']:
                     print(sub_story)
                     if int(sub_story['status']) == 1: # 未解锁
