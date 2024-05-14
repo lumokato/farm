@@ -287,7 +287,10 @@ async def main_matters():
             print(await client.buy_pjjc_shop())
             await client.sweep_explore_exp()
             await client.sweep_explore_mana()
-            print(await client.dungeon_sweep("max"))
+            if time_now.month % 2 != 0 and 16 <= time_now.day <= 22:
+                print("特别地下城开启，暂停跳过地下城")
+            else:
+                print(await client.dungeon_sweep("max"))
             # 每月前半
             if time_now.day < 13:
                 await client.query(client.room)
