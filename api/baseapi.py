@@ -550,7 +550,8 @@ class BaseApi:
             31004: "沧海的孤塔",
             31005: "毒瘴的暗棱",
             31006: "绿龙的骸岭",
-            31007: "天上的浮城"
+            31007: "天上的浮城",
+            31008: "沙暴的底都"
         }
         try:
             data = await self.client.callapi("/dungeon/info", {})
@@ -581,8 +582,9 @@ class BaseApi:
             max_dungeon_id = max(dungeon_name.keys())
             if max_dungeon_id not in dungeon_cleared_area_id_list:
                 return f'Warn. 您设置仅尝试扫荡当前开放的最高等级地下城({dungeon_name[max_dungeon_id]})，但尚未通关。'
-
-        dungeon_area_id = max(dungeon_cleared_area_id_list)
+        # 去除SP地下城id
+        filtered_list = [x for x in dungeon_cleared_area_id_list if x <= 32000]
+        dungeon_area_id = max(filtered_list)
         dungeon_area_name = dungeon_name.get(dungeon_area_id, dungeon_area_id)
 
         try:
