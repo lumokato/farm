@@ -965,9 +965,10 @@ class BaseApi:
                                     "current_currency_num": self.gold})
                 if ret['user_gold']['gold_id_free'] < self.gold:
                     return f"    每日限定商店购买成功"
-                print('1')
             except Exception as e:
                 return f'Abort. 购买每日限定商店失败'
+        else:
+            return f'    每日限定商店已手动清空'
 
     async def random_like(self):
         if not self.clan_like:
