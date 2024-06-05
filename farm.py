@@ -284,7 +284,7 @@ async def main_matters():
             print(await client.random_like())
             print(await client.buy_dungeon_shop())
             print(await client.buy_jjc_shop())
-            print(await client.buy_pjjc_shop())
+            # print(await client.buy_pjjc_shop())
             await client.sweep_explore_exp()
             await client.sweep_explore_mana()
             if time_now.month % 2 != 0 and 16 <= time_now.day <= 22:
@@ -310,7 +310,7 @@ async def main_matters():
             print(await client.random_like())
             print(await client.buy_dungeon_shop())
             print(await client.buy_jjc_shop())
-            print(await client.buy_pjjc_shop())
+            # print(await client.buy_pjjc_shop())
             await client.sweep_explore_exp()
             await client.sweep_explore_mana()
             print(await client.dungeon_sweep("max"))
