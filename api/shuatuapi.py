@@ -254,7 +254,10 @@ class ShuatuApi(BaseApi):
         stamina_base = 0
         for tu in shuatu:
             stamina_base += quest_stamina(tu)
-        shuatu_count = int(2500/stamina_base)
+        if stamina_base:
+            shuatu_count = int(2500/stamina_base)
+        else:
+            shuatu_count = 0
         random.shuffle(shuatu)
         for tu_num in shuatu:
             if not await self.quest(tu_num, shuatu_count, buy_stamina):
