@@ -295,7 +295,7 @@ async def main_matters():
             if time_now.day < 13:
                 await client.query(client.room)
                 await client.event_hard_sweep('new')
-                await client.star6_sweep(13032001)
+                await client.star6_sweep(13032002)
                 await client.quest(12052003, 3, 0)  # 雪菲碎片本
         elif time_now.hour == 18 or time_now.hour == 17:
             await asyncio.sleep(40+time_now.day*60)
