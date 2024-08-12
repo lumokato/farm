@@ -86,7 +86,7 @@ class PCRClient:
         self.viewer_id = viewer_id
         self.request_id = ""
         self.session_id = ""
-        self.urlroot = "https://l3-prod-uo-gs-gzlj.bilibiligame.net/"
+        self.urlroot = "https://l2-prod-uo-gs-gzlj.bilibiligame.net/"
         self.default_headers = {
             "EXCEL-VER": "1.0.0",
             "SHORT-UDID": "1001341751",
