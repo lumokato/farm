@@ -96,7 +96,7 @@ async def daily_matters(index, vid, sem):
     async with sem:
         log = logger('farm')
         try:
-            n_event = total['N_event']
+            # n_event = total['N_event']
             client = ShuatuApi(vid)
             await client.query(client.room)
             # 地下城捐赠
@@ -106,22 +106,22 @@ async def daily_matters(index, vid, sem):
                         dun = await client.query(client.dungeon, clan['donate_user'])
                         if dun > 0:
                             bind['clan'][i]['donate_times'] += 1
-            await client.query(client.mission)  # 收取任务
-            await client.shuatu_daily(n_event, total['max_level'])  # 刷图
-            await client.query(client.present)   # 收取礼物
-            if datetime.datetime.now().weekday() == 0:
-                await client.arena_reward()  # 收取双场币
-                # App.shop_item()  # 商店购买
-            await client.query(client.gacha_select)
-            await client.query(client.gacha)     # 扭蛋
-            # await client.query(client.alchemy)   # 购买扫荡券
-            await client.query(client.training_skip)     # 探索本
-            await client.query(client.mission)  # 收取任务
-            print(await client.query(client.buy_daily_shop))
-            # 如果收取任务时升级，再次执行刷图函数
-            await client.load_index(requery=True)
-            if client.user_stamina > 80:
-                await client.shuatu_daily(n_event, total['max_level'])
+            # await client.query(client.mission)  # 收取任务
+            # await client.shuatu_daily(n_event, total['max_level'])  # 刷图
+            # await client.query(client.present)   # 收取礼物
+            # if datetime.datetime.now().weekday() == 0:
+            #     await client.arena_reward()  # 收取双场币
+            #     # App.shop_item()  # 商店购买
+            # await client.query(client.gacha_select)
+            # await client.query(client.gacha)     # 扭蛋
+            # # await client.query(client.alchemy)   # 购买扫荡券
+            # await client.query(client.training_skip)     # 探索本
+            # await client.query(client.mission)  # 收取任务
+            # print(await client.query(client.buy_daily_shop))
+            # # 如果收取任务时升级，再次执行刷图函数
+            # await client.load_index(requery=True)
+            # if client.user_stamina > 80:
+            #     await client.shuatu_daily(n_event, total['max_level'])
             # 女神祭
             # await client.season_ticket()
             # await client.season_ticket_reward()
@@ -157,7 +157,7 @@ def do_farm_cron():
 
     async def farm_daily(farm_list):
         task_list = []
-        sem = asyncio.Semaphore(8)
+        sem = asyncio.Semaphore(5)
         for index in farm_list:
             task = asyncio.create_task(daily_matters(index, total["accounts"][index]["vid"], sem))
             task_list.append(task)
@@ -279,46 +279,49 @@ async def main_matters():
         time_now = datetime.datetime.now()
         if time_now.hour == 10 or time_now.hour == 9:
             await asyncio.sleep(20+time_now.day*60)
-            await client.query(client.gacha)
+            # await client.query(client.gacha)
             print(await client.clan_equip_donation())
-            print(await client.random_like())
-            print(await client.buy_dungeon_shop())
-            print(await client.buy_jjc_shop())
+            # print(await client.random_like())
+            # print(await client.buy_dungeon_shop())
+            # print(await client.buy_jjc_shop())
             # print(await client.buy_pjjc_shop())
-            await client.sweep_explore_exp()
-            await client.sweep_explore_mana()
-            if time_now.month % 2 != 0 and 16 <= time_now.day <= 24:
-                print("特别地下城开启，暂停跳过地下城")
-            else:
-                print(await client.dungeon_sweep("max"))
+            # await client.sweep_explore_exp()
+            # await client.sweep_explore_mana()
+            # if time_now.month % 2 != 0 and 16 <= time_now.day <= 24:
+            #     print("特别地下城开启，暂停跳过地下城")
+            # else:
+            #     print(await client.dungeon_sweep("max"))
             # 每月前半
             if time_now.day < 13:
                 await client.query(client.room)
                 await client.event_hard_sweep('new')
-                await client.star6_sweep(13032003)
+                await client.star6_sweep(13033001)
+                await client.star6_sweep(13033002)
                 await client.quest(12052003, 3, 0)  # 雪菲碎片本
+                await client.quest(12054003, 3, 0)  # 灰狐碎片本
         elif time_now.hour == 18 or time_now.hour == 17:
             await asyncio.sleep(40+time_now.day*60)
-            await client.query(client.gacha)
+            # await client.query(client.gacha)
             print(await client.clan_equip_donation())
-            await client.season_ticket()
-            print('已登录账号' + str(client.viewer_id) + ",账号等级为" + str(client.team_level) + ',现有体力为' + str(client.user_stamina) + ',免费钻量' + str(client.user_jewel))
+            # await client.season_ticket()
+            # print('已登录账号' + str(client.viewer_id) + ",账号等级为" + str(client.team_level) + ',现有体力为' + str(client.user_stamina) + ',免费钻量' + str(client.user_jewel))
             # if time_now.day > 12:
             #     await client.query(client.room)
         elif time_now.hour == 5:    # 会战期间
-            await client.query(client.gacha)
-            print(await client.random_like())
-            print(await client.buy_dungeon_shop())
-            print(await client.buy_jjc_shop())
-            # print(await client.buy_pjjc_shop())
-            await client.sweep_explore_exp()
-            await client.sweep_explore_mana()
-            print(await client.dungeon_sweep("max"))
+            pass
+        #     await client.query(client.gacha)
+        #     print(await client.random_like())
+        #     print(await client.buy_dungeon_shop())
+        #     print(await client.buy_jjc_shop())
+        #     # print(await client.buy_pjjc_shop())
+        #     await client.sweep_explore_exp()
+        #     await client.sweep_explore_mana()
+        #     print(await client.dungeon_sweep("max"))
         else:
             await asyncio.sleep(time_now.day*60)
             print(await client.query(client.clan_equip_donation))
-            await client.query(client.mission)
-            print(await client.query(client.buy_daily_shop))
+            # await client.query(client.mission)
+            # print(await client.query(client.buy_daily_shop))
 
     except Exception as e:
         log.exception(e)
@@ -354,7 +357,7 @@ def daily_cron(scheduler_func):
 if __name__ == "__main__":
     scheduler = BlockingScheduler(timezone="Asia/Shanghai", job_defaults={'max_instances': 5})
     scheduler.add_job(do_equip_cron, 'cron', minute='20')
-    scheduler.add_job(do_farm_cron, 'cron', hour='6,19', minute='30')
+    scheduler.add_job(do_farm_cron, 'cron', hour='9,19', minute='30')
     daily_cron(scheduler)
     scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
     scheduler.add_job(battle_remove, 'cron', day='22', hour='0', args=[scheduler])
