@@ -280,7 +280,7 @@ async def main_matters():
         if time_now.hour == 10 or time_now.hour == 9:
             await asyncio.sleep(20+time_now.day*60)
             # await client.query(client.gacha)
-            print(await client.clan_equip_donation())
+            print(await client.query(client.clan_equip_donation))
             # print(await client.random_like())
             # print(await client.buy_dungeon_shop())
             # print(await client.buy_jjc_shop())
@@ -307,8 +307,8 @@ async def main_matters():
             # print('已登录账号' + str(client.viewer_id) + ",账号等级为" + str(client.team_level) + ',现有体力为' + str(client.user_stamina) + ',免费钻量' + str(client.user_jewel))
             # if time_now.day > 12:
             #     await client.query(client.room)
-        elif time_now.hour == 5:    # 会战期间
-            pass
+        # elif time_now.hour == 5:    # 会战期间
+        #     pass
         #     await client.query(client.gacha)
         #     print(await client.random_like())
         #     print(await client.buy_dungeon_shop())
@@ -350,8 +350,8 @@ def daily_cron(scheduler_func):
             scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='2,10,18', minute='25')
         elif i == monthdays[1]:
             scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='1,9,17', minute='25')
-        else:
-            scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='5', minute='25')
+        # else:
+        #     scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='5', minute='25')
 
 
 if __name__ == "__main__":
