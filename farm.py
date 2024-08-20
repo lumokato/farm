@@ -281,9 +281,10 @@ async def main_matters():
             await asyncio.sleep(20+time_now.day*60)
             # await client.query(client.gacha)
             print(await client.query(client.clan_equip_donation))
+            await client.quest(12054003, 3, 0)  # 灰狐碎片本
             # print(await client.random_like())
-            # print(await client.buy_dungeon_shop())
-            # print(await client.buy_jjc_shop())
+            print(await client.buy_dungeon_shop())
+            print(await client.buy_jjc_shop())
             # print(await client.buy_pjjc_shop())
             # await client.sweep_explore_exp()
             # await client.sweep_explore_mana()
@@ -298,7 +299,6 @@ async def main_matters():
                 await client.star6_sweep(13033001)
                 await client.star6_sweep(13033002)
                 await client.quest(12052003, 3, 0)  # 雪菲碎片本
-                await client.quest(12054003, 3, 0)  # 灰狐碎片本
         elif time_now.hour == 18 or time_now.hour == 17:
             await asyncio.sleep(40+time_now.day*60)
             # await client.query(client.gacha)
@@ -307,12 +307,12 @@ async def main_matters():
             # print('已登录账号' + str(client.viewer_id) + ",账号等级为" + str(client.team_level) + ',现有体力为' + str(client.user_stamina) + ',免费钻量' + str(client.user_jewel))
             # if time_now.day > 12:
             #     await client.query(client.room)
-        # elif time_now.hour == 5:    # 会战期间
+        elif time_now.hour == 5:    # 会战期间
         #     pass
         #     await client.query(client.gacha)
         #     print(await client.random_like())
-        #     print(await client.buy_dungeon_shop())
-        #     print(await client.buy_jjc_shop())
+            print(await client.buy_dungeon_shop())
+            print(await client.buy_jjc_shop())
         #     # print(await client.buy_pjjc_shop())
         #     await client.sweep_explore_exp()
         #     await client.sweep_explore_mana()
@@ -350,8 +350,8 @@ def daily_cron(scheduler_func):
             scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='2,10,18', minute='25')
         elif i == monthdays[1]:
             scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='1,9,17', minute='25')
-        # else:
-        #     scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='5', minute='25')
+        else:
+            scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='5', minute='25')
 
 
 if __name__ == "__main__":
