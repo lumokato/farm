@@ -38,6 +38,7 @@ def unpack(decrypted_packet):
 
 
 def decrypt(encrypted):
+    # print(encrypted)
     mode = AES.MODE_CBC
     ss2 = base64.b64decode(encrypted)
     vi = b'ha4nBYA2APUD6Uv1'
@@ -88,29 +89,26 @@ class PCRClient:
         self.session_id = ""
         self.urlroot = "https://l1-prod-uo-gs-gzlj.bilibiligame.net/"
         self.default_headers = {
-            "EXCEL-VER": "1.0.0",
-            "SHORT-UDID": "1001341751",
-            "BATTLE-LOGIC-VERSION": "4",
-            "IP-ADDRESS": "10.0.2.15",
-            "DEVICE-ID": "febf37270db0254b8d1f76af92f0419f",
-            "DEVICE-NAME": "Google PIXEL 2 XL",
-            "GRAPHICS-DEVICE-NAME": "Adreno (TM) 540",
-            "APP-VER": version,
-            "RES-KEY": "d145b29050641dac2f8b19df0afe0e59",
-            "RES-VER": "10002200",
-            "KEYCHAIN": "",
-            "CHANNEL-ID": "4",
-            "PLATFORM-ID": "4",
-            "REGION-CODE": "",
-            "PLATFORM": "2",
-            "PLATFORM-OS-VERSION": "Android OS 7.1.2 / API-25 (NOF26V/4565141)",
-            "LOCALE": "Jpn",
-            "X-Unity-Version": "2018.4.30f1",
-            "BUNDLE_VER": "",
-            "DEVICE": "2",
-            "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 7.1.2; PIXEL 2 XL Build/NOF26V)",
-            "Accept-Encoding": "gzip, deflate",
-            "Connection": "close"}
+            'Accept-Encoding': 'gzip',
+            'User-Agent': 'Dalvik/2.1.0 (Linux, U, Android 5.1.1, PCRT00 Build/LMY48Z)',
+            'X-Unity-Version': '2021.3.20f1c1',
+            'APP-VER': version,
+            'BATTLE-LOGIC-VERSION': '4',
+            'BUNDLE-VER': '',
+            'DEVICE': '2',
+            'DEVICE-ID': '7b1703a5d9b394e24051d7a5d4818f17',
+            'DEVICE-NAME': 'OPPO PCRT00',
+            'EXCEL-VER': '1.0.0',
+            'GRAPHICS-DEVICE-NAME': 'Adreno (TM) 640',
+            'IP-ADDRESS': '10.0.2.15',
+            'KEYCHAIN': '',
+            'LOCALE': 'CN',
+            'PLATFORM-OS-VERSION': 'Android OS 5.1.1 / API-22 (LMY48Z/rel.se.infra.20200612.100533)',
+            'REGION-CODE': '',
+            'RES-KEY': 'd145b29050641dac2f8b19df0afe0e59',
+            'RES-VER': '10002200',
+            'SHORT-UDID': '0'
+            }
         self.conn = requests.session()
         self.shouldLogin = True
 
@@ -179,7 +177,7 @@ class PCRClient:
         self.default_headers["MANIFEST-VER"] = ver
         for retry in range(4):
             await self.callapi('tool/sdk_login', {"uid": uid, "access_key": access_key, "platform": self.default_headers["PLATFORM-ID"], "channel_id": self.default_headers["CHANNEL-ID"]})
-            await self.callapi('check/game_start', {"app_type": 0, "campaign_data": "", "campaign_user": random.randint(1, 1000000)})
+            await self.callapi('check/game_start', {"app_type": 0, "campaign_data": "", "campaign_user": random.randint(1, 100000)})
             load = await self.callapi("load/index", {"carrier": "google"})
             home = await self.callapi("home/index", {'message_id': random.randint(1, 5000), 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
             if 'server_error' not in home:

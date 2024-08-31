@@ -261,7 +261,7 @@ class BaseApi:
 
     # 复刻池选取碎片（临时）
     async def gacha_select(self):
-        temp = await self.client.callapi('gacha/select_prize', {'prizegacha_id': 100065, 'item_id': 31180})
+        temp = await self.client.callapi('gacha/select_prize', {'prizegacha_id': 100077, 'item_id': 31106})
         return temp
 
     # 抽取当期up
