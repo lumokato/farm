@@ -38,8 +38,11 @@ def unpack(decrypted_packet):
 
 
 def decrypt(encrypted):
-    # print(encrypted)
     mode = AES.MODE_CBC
+    try:
+        ss2 = base64.b64decode(encrypted)
+    except:
+        print(encrypted)
     ss2 = base64.b64decode(encrypted)
     vi = b'ha4nBYA2APUD6Uv1'
     key = ss2[-32:]
@@ -96,6 +99,8 @@ class PCRClient:
             'BATTLE-LOGIC-VERSION': '4',
             'BUNDLE-VER': '',
             'DEVICE': '2',
+            "CHANNEL-ID": "4",
+            "PLATFORM-ID": "4",
             'DEVICE-ID': '7b1703a5d9b394e24051d7a5d4818f17',
             'DEVICE-NAME': 'OPPO PCRT00',
             'EXCEL-VER': '1.0.0',
@@ -127,13 +132,25 @@ class PCRClient:
                 headers["REQUEST-ID"] = self.request_id
             if flag2:
                 headers["SID"] = self.session_id
+            resp = None
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=600)) as session:
-                response = await session.post(self.urlroot + apiurl, data=req, headers=self.default_headers)
-                resp = await response.content.read()
+                for re_post in range(3):
+                    response = await session.post(self.urlroot + apiurl, data=req, headers=self.default_headers)
+                    if response.status == 200:
+                        resp = await response.content.read()
+                        break
+            if not resp:
+                raise Exception("request failed")
             if crypted:
-                ret = decrypt(resp)
+                try:
+                    ret = decrypt(resp)
+                except Exception:
+                    return None                    
             else:
-                ret = loads(resp.decode())
+                try:
+                    ret = loads(resp.decode())
+                except Exception:
+                    return None
             ret_header = ret["data_headers"]
             if "check/game_start" == apiurl and "store_url" in ret_header:
                 global version
@@ -175,13 +192,20 @@ class PCRClient:
                 time.sleep(60)
         ver = self.manifest["required_manifest_ver"]
         self.default_headers["MANIFEST-VER"] = ver
+        load = None
         for retry in range(4):
-            await self.callapi('tool/sdk_login', {"uid": uid, "access_key": access_key, "platform": self.default_headers["PLATFORM-ID"], "channel_id": self.default_headers["CHANNEL-ID"]})
-            await self.callapi('check/game_start', {"app_type": 0, "campaign_data": "", "campaign_user": random.randint(1, 100000)})
-            load = await self.callapi("load/index", {"carrier": "google"})
-            home = await self.callapi("home/index", {'message_id': random.randint(1, 5000), 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
-            if 'server_error' not in home:
-                break
+            try:
+                await self.callapi('tool/sdk_login', {"uid": uid, "access_key": access_key, "platform": self.default_headers["PLATFORM-ID"], "channel_id": self.default_headers["CHANNEL-ID"]})
+                await self.callapi('check/game_start', {"app_type": 0, "campaign_data": "", "campaign_user": random.randint(1, 100000)})
+                load = await self.callapi("load/index", {"carrier": "OPPO"})
+                home = await self.callapi("home/index", {'message_id': random.randint(1, 5000), 'tips_id_list': [], 'is_first': 1, 'gold_history': 0})
+                if 'server_error' not in home:
+                    break
+            except Exception as e:
+                # print(e)
+                print('login failed. retrying...')
+        if not load:
+            return None, None
         self.shouldLogin = False
         return load, home
 

@@ -281,7 +281,6 @@ async def main_matters():
             await asyncio.sleep(20+time_now.day*60)
             # await client.query(client.gacha)
             print(await client.query(client.clan_equip_donation))
-            await client.quest(12054003, 3, 0)  # 灰狐碎片本
             # print(await client.random_like())
             print(await client.buy_dungeon_shop())
             print(await client.buy_jjc_shop())
@@ -295,10 +294,11 @@ async def main_matters():
             # 每月前半
             if time_now.day < 13:
                 await client.query(client.room)
-                await client.event_hard_sweep('new')
-                await client.star6_sweep(13033001)
-                await client.star6_sweep(13033002)
+                # await client.event_hard_sweep('new')
+                # await client.star6_sweep(13033001)
+                # await client.star6_sweep(13033002)
                 await client.quest(12052003, 3, 0)  # 雪菲碎片本
+                # await client.quest(12054003, 3, 0)  # 灰狐碎片本
         elif time_now.hour == 18 or time_now.hour == 17:
             await asyncio.sleep(40+time_now.day*60)
             # await client.query(client.gacha)

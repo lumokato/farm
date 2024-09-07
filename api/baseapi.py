@@ -54,11 +54,12 @@ class BaseApi:
     async def query(self, func, *args):
         # try:
         # async with lck:
-        for re_login in range(2):
+        for re_login in range(3):
             while self.client.shouldLogin:
                 self.load, self.home = await self.client.login(self.uid, self.access_key)
-                await self.load_index()
-                await self.home_index()
+                if self.load:
+                    await self.load_index()
+                    await self.home_index()
             ret = await func(*args)
             if not ret:
                 self.client.shouldLogin = True
