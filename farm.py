@@ -275,15 +275,15 @@ async def main_matters():
     try:
         with open('account.json', encoding='utf-8') as fp:
             main_user = load(fp)["main"]
-        client = ShuatuApi(main_user["vid"], main_user["uid"])
         time_now = datetime.datetime.now()
         if time_now.hour == 10 or time_now.hour == 9:
-            await asyncio.sleep(20+time_now.day*60)
+            client = ShuatuApi(main_user["vid"], main_user["uid"])
+            # await asyncio.sleep(20+time_now.day*60)
             # await client.query(client.gacha)
-            print(await client.query(client.clan_equip_donation))
+            # print(await client.query(client.clan_equip_donation))
             # print(await client.random_like())
-            print(await client.buy_dungeon_shop())
-            print(await client.buy_jjc_shop())
+            # print(await client.buy_dungeon_shop())
+            # print(await client.buy_jjc_shop())
             # print(await client.buy_pjjc_shop())
             # await client.sweep_explore_exp()
             # await client.sweep_explore_mana()
@@ -299,16 +299,16 @@ async def main_matters():
                 # await client.star6_sweep(13033002)
                 await client.quest(12052003, 3, 0)  # 雪菲碎片本
                 # await client.quest(12054003, 3, 0)  # 灰狐碎片本
-        elif time_now.hour == 18 or time_now.hour == 17:
-            await asyncio.sleep(40+time_now.day*60)
-            # await client.query(client.gacha)
-            print(await client.query(client.clan_equip_donation))
+        # elif time_now.hour == 18 or time_now.hour == 17:
+            # await asyncio.sleep(40+time_now.day*60)
+            # # await client.query(client.gacha)
+            # print(await client.query(client.clan_equip_donation))
             # await client.season_ticket()
             # print('已登录账号' + str(client.viewer_id) + ",账号等级为" + str(client.team_level) + ',现有体力为' + str(client.user_stamina) + ',免费钻量' + str(client.user_jewel))
             # if time_now.day > 12:
             #     await client.query(client.room)
-        elif time_now.hour == 5:    # 会战期间
-            pass
+        # elif time_now.hour == 5:    # 会战期间
+        #     pass
         #     await client.query(client.gacha)
         #     print(await client.random_like())
             # print(await client.buy_dungeon_shop())
@@ -317,9 +317,9 @@ async def main_matters():
         #     await client.sweep_explore_exp()
         #     await client.sweep_explore_mana()
         #     print(await client.dungeon_sweep("max"))
-        else:
-            await asyncio.sleep(time_now.day*60)
-            print(await client.query(client.clan_equip_donation))
+        # else:
+        #     await asyncio.sleep(time_now.day*60)
+        #     print(await client.query(client.clan_equip_donation))
             # await client.query(client.mission)
             # print(await client.query(client.buy_daily_shop))
 
@@ -350,15 +350,15 @@ def daily_cron(scheduler_func):
             scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='2,10,18', minute='25')
         elif i == monthdays[1]:
             scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='1,9,17', minute='25')
-        else:
-            scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='5', minute='08')
+        # else:
+        #     scheduler_func.add_job(do_main_cron, 'cron', day=str(i), hour='5', minute='08')
 
 
 if __name__ == "__main__":
     scheduler = BlockingScheduler(timezone="Asia/Shanghai", job_defaults={'max_instances': 5})
     scheduler.add_job(do_equip_cron, 'cron', minute='20')
     scheduler.add_job(do_farm_cron, 'cron', hour='9,19', minute='30')
-    daily_cron(scheduler)
+    # daily_cron(scheduler)
     scheduler.add_job(clear_daily, 'cron', hour='0', minute='5')
     scheduler.add_job(battle_remove, 'cron', day='22', hour='0', args=[scheduler])
     if 21 < datetime.datetime.today().day < 26:
